@@ -7,9 +7,12 @@ from datetime import datetime
 import re
 import time
 
-# ✅ 로컬 개발 시만 로드 (Render에서는 환경 변수 사용)
-#if os.path.exists('.env'):
-   # load_dotenv()
+# 로컬 개발 환경 지원
+if os.path.exists('.env'):
+    load_dotenv()
+
+# Render 환경 변수도 지원
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 app = Flask(__name__)
 
