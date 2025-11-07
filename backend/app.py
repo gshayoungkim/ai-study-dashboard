@@ -6,23 +6,30 @@ import json
 from datetime import datetime
 import re
 import time
+import os
+from dotenv import load_dotenv
 
-load_dotenv()
+# .env 파일 로드 (로컬 개발 시)
+if os.path.exists('.env'):
+    load_dotenv('.env')
+elif os.path.exists('../.env'):
+    load_dotenv('../.env')
 
-app = Flask(__name__)
-
+# 환경 변수에서 직접 읽기
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 print(f"\n{'='*60}")
 print("[INIT] GitHub 토큰 확인")
 print(f"  토큰: {GITHUB_TOKEN[:20]}...***" if GITHUB_TOKEN else "  토큰: 없음 ❌")
+print(f"  토큰 길이: {len(GITHUB_TOKEN) if GITHUB_TOKEN else 0}")
 print(f"{'='*60}\n")
 
 if not GITHUB_TOKEN:
-    print("[ERROR] GITHUB_TOKEN이 설정되지 않았습니다!")
-    print("  .env 파일에 GITHUB_TOKEN=ghp_... 를 추가하세요")
+    print("[WARNING] GITHUB_TOKEN이 설정되지 않았습니다!")
+    print("  Render 대시보드에서 Environment 변수를 확인하세요")
+load_dotenv()
 
-g = Github(GITHUB_TOKEN) if GITHUB_TOKEN else None
+app = Flask(__name__)
 
 QUIZ_DATA_FILE = 'quiz_results.json'
 
@@ -37,12 +44,12 @@ QUIZZES = {
     "ch02": {"title": "Ch02 - 데이터 전처리", "gemini_link": "https://gemini.google.com/"},
     "ch03": {"title": "Ch03 - 회귀", "gemini_link": "https://gemini.google.com/"},
     "ch04": {"title": "Ch04 - 분류", "gemini_link": "https://gemini.google.com/"},
-    "ch05": {"title": "Ch05 - 모델 평가", "gemini_link": "https://gemini.google.com/"},
-    "ch06": {"title": "Ch06 - 앙상블", "gemini_link": "https://gemini.google.com/"},
-    "ch07": {"title": "Ch07 - 신경망", "gemini_link": "https://gemini.google.com/"},
-    "ch08": {"title": "Ch08 - CNN", "gemini_link": "https://gemini.google.com/"},
-    "ch09": {"title": "Ch09 - RNN", "gemini_link": "https://gemini.google.com/"},
-    "ch10": {"title": "Ch10 - 고급 기법", "gemini_link": "https://gemini.google.com/"},
+    "ch05": {"title": "Ch05 - 모델 평가", "gemini_link": "https://gemini.google.com/share/58b3bbcd177d"},
+    #"ch06": {"title": "Ch06 - 앙상블", "gemini_link": "https://gemini.google.com/"},
+    #"ch07": {"title": "Ch07 - 신경망", "gemini_link": "https://gemini.google.com/"},
+    #"ch08": {"title": "Ch08 - CNN", "gemini_link": "https://gemini.google.com/"},
+    #"ch09": {"title": "Ch09 - RNN", "gemini_link": "https://gemini.google.com/"},
+    #"ch10": {"title": "Ch10 - 고급 기법", "gemini_link": "https://gemini.google.com/"},
 }
 
 # 레포지토리 이름과 사람 정보 매핑
@@ -253,6 +260,25 @@ def progress():
 @app.route('/quiz')
 def quiz():
     return render_template('quiz.html', quizzes=QUIZZES)
+@app.route('/api/quiz-stats')
+def quiz_stats():
+    """퀴즈 통계"""
+    quiz_results = load_quiz_results()
+    stats = {}
+    
+    # 모든 퀴즈 ID에 대해 통계 생성
+    for chapter, quiz_list in QUIZZES.items():
+        for quiz in quiz_list:
+            quiz_id = quiz['id']
+            # 완료한 사람 수 세기
+            count = sum(1 for user in quiz_results.values() 
+                       if quiz_id in user.get('completed_quizzes', []))
+            stats[quiz_id] = {
+                'completed': count,
+                'total': len(REPO_NAME_MAPPING)
+            }
+    
+    return jsonify(stats)
 
 @app.route('/debug')
 def debug():

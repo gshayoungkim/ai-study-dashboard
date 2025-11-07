@@ -5,43 +5,39 @@
     <h1>🎯 Gemini 퀴즈</h1>
     
     <div class="quiz-info">
-        <p>각 챕터의 Gemini 퀴즈를 풀고 완료했을 때 자신의 이름을 입력해 배지를 얻으세요!</p>
+        <p>각 챕터의 Gemini 퀴즈를 풀어보세요!</p>
     </div>
 
     <div class="quiz-container">
         <div class="quiz-list">
-            {% for chapter, quiz in quizzes.items() | sort %}
-            <div class="quiz-card">
-                <div class="quiz-header">
-                    <h3>{{ quiz.title }}</h3>
-                    <span class="chapter-badge">{{ chapter }}</span>
-                </div>
-                
-                <div class="quiz-body">
-                    <a href="{{ quiz.gemini_link }}" target="_blank" class="btn-quiz">
-                        🤖 퀴즈 풀기
-                    </a>
-                </div>
-                
-                <div class="quiz-completion">
-                    <div class="completion-header">
-                        <span>완료한 사람</span>
-                        <span id="count-{{ chapter }}">0명</span>
+            {% for chapter, quiz_list in quizzes.items() | sort %}
+            <div class="chapter-section">
+                <h2 class="chapter-title">{{ chapter|upper }}</h2>
+                <div class="quizzes-grid">
+                    {% for quiz in quiz_list %}
+                    <div class="quiz-card">
+                        <div class="quiz-header">
+                            <h3>{{ quiz.title }}</h3>
+                            <span class="quiz-id">{{ quiz.id }}</span>
+                        </div>
+                        
+                        <div class="quiz-body">
+                            <a href="{{ quiz.gemini_link }}" target="_blank" class="btn-quiz">
+                                🤖 퀴즈 풀기
+                            </a>
+                        </div>
+                        
+                        <div class="quiz-completion">
+                            <div class="completion-header">
+                                <span>완료한 사람</span>
+                                <span id="count-{{ quiz.id }}">0명</span>
+                            </div>
+                            <div class="completion-names" id="names-{{ quiz.id }}">
+                                <!-- 완료한 사람 목록 -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="completion-names" id="names-{{ chapter }}">
-                        <!-- 완료한 사람 목록이 여기 들어옴 -->
-                    </div>
-                </div>
-                
-                <div class="quiz-footer">
-                    <input type="text" 
-                           placeholder="이름을 입력하세요" 
-                           class="name-input"
-                           id="name-{{ chapter }}"
-                           data-chapter="{{ chapter }}">
-                    <button onclick="submitQuiz('{{ chapter }}')" class="btn-submit">
-                        ✓ 완료
-                    </button>
+                    {% endfor %}
                 </div>
             </div>
             {% endfor %}
@@ -72,13 +68,25 @@
 }
 
 .quiz-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
-.quiz-list {
+.chapter-section {
+    margin-bottom: 3rem;
+}
+
+.chapter-title {
+    font-size: 1.5rem;
+    color: #667eea;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.quizzes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 2rem;
 }
 
@@ -89,6 +97,12 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quiz-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .quiz-header {
@@ -96,28 +110,35 @@
     padding: 1.5rem;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 1rem;
     border-bottom: 2px solid #eee;
 }
 
 .quiz-header h3 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #333;
+    flex: 1;
 }
 
-.chapter-badge {
+.quiz-id {
     background: #667eea;
     color: white;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: bold;
+    white-space: nowrap;
 }
 
 .quiz-body {
     padding: 1.5rem;
     text-align: center;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-quiz {
@@ -137,7 +158,7 @@
 }
 
 .quiz-completion {
-    padding: 1.5rem;
+    padding: 1rem;
     background: #f9f9f9;
     border-top: 1px solid #eee;
     min-height: 60px;
@@ -147,8 +168,9 @@
     display: flex;
     justify-content: space-between;
     font-weight: bold;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem;
     color: #667eea;
+    font-size: 0.9rem;
 }
 
 .completion-names {
@@ -160,96 +182,35 @@
 .name-badge {
     background: #4CAF50;
     color: white;
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
 }
 
-.quiz-footer {
-    padding: 1rem;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.name-input {
-    flex: 1;
-    padding: 0.8rem;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    transition: border-color 0.3s;
-}
-
-.name-input:focus {
-    outline: none;
-    border-color: #667eea;
-}
-
-.btn-submit {
-    padding: 0.8rem 1.5rem;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.btn-submit:hover {
-    background: #45a049;
-    transform: translateY(-2px);
+@media (max-width: 768px) {
+    .quizzes-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
 <script>
-function submitQuiz(chapter) {
-    const nameInput = document.getElementById('name-' + chapter);
-    const name = nameInput.value.trim();
-    
-    if (!name) {
-        alert('이름을 입력해주세요!');
-        return;
-    }
-    
-    fetch('/api/submit-quiz', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            user_name: name,
-            chapter: chapter
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message);
-        if (data.success) {
-            nameInput.value = '';
-            loadQuizStats();
-        }
-    });
-}
-
-function loadQuizStats() {
-    fetch('/api/quiz-stats')
-    .then(res => res.json())
-    .then(stats => {
-        Object.entries(stats).forEach(([chapter, stat]) => {
-            const countEl = document.getElementById('count-' + chapter);
-            const namesEl = document.getElementById('names-' + chapter);
-            
-            if (countEl) countEl.textContent = stat.completed + '명';
-            
-            // 통계만 업데이트 (이름 목록은 quiz_results.json에서 표시)
-        });
-    });
-}
-
-// 페이지 로드 시 한 번만 통계 로드
 document.addEventListener('DOMContentLoaded', function() {
     loadQuizStats();
 });
+
+function loadQuizStats() {
+    fetch('/api/quiz-stats')
+        .then(res => res.json())
+        .then(stats => {
+            Object.entries(stats).forEach(([quiz_id, stat]) => {
+                const countEl = document.getElementById('count-' + quiz_id);
+                if (countEl) {
+                    countEl.textContent = stat.completed + '명';
+                }
+            });
+        })
+        .catch(err => console.error('통계 로드 실패:', err));
+}
 </script>
 {% endblock %}
