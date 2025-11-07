@@ -5,6 +5,14 @@
     <h1>🎯 Gemini 퀴즈</h1>
     
     <div class="quiz-info">
+        <!-- 드롭박스 추가 -->
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;">
+            <label for="user-select" style="font-weight: bold;">👤 이름:</label>
+            <select id="user-select" style="padding: 0.5rem; border: 2px solid white; border-radius: 4px; width: 200px; font-size: 1rem; cursor: pointer;">
+                <option value="">-- 이름을 선택하세요 --</option>
+            </select>
+            <span id="current-user" style="font-weight: bold; margin-left: 1rem;"></span>
+        </div>
         <p>각 챕터의 Gemini 퀴즈를 풀어보세요!</p>
     </div>
 
@@ -22,7 +30,7 @@
                         </div>
                         
                         <div class="quiz-body">
-                            <a href="{{ quiz.gemini_link }}" target="_blank" class="btn-quiz">
+                            <a href="{{ quiz.gemini_link }}" target="_blank" class="btn-quiz" onclick="recordQuizCompletion('{{ quiz.id }}')">
                                 🤖 퀴즈 풀기
                             </a>
                         </div>
@@ -195,9 +203,85 @@
 </style>
 
 <script>
+let currentUser = localStorage.getItem('quiz_user_name') || '';
+
 document.addEventListener('DOMContentLoaded', function() {
+    loadUsersList();
+    updateUserDisplay();
     loadQuizStats();
+    
+    document.getElementById('user-select').addEventListener('change', selectUser);
 });
+
+function loadUsersList() {
+    // 서버에서 한글 이름 목록 가져오기
+    fetch('/api/users')
+        .then(res => res.json())
+        .then(users => {
+            const selectEl = document.getElementById('user-select');
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user;
+                option.textContent = user;
+                selectEl.appendChild(option);
+            });
+            
+            // 저장된 이름이 있으면 선택 상태 복원
+            if (currentUser) {
+                selectEl.value = currentUser;
+            }
+        })
+        .catch(err => console.error('사용자 목록 로드 실패:', err));
+}
+
+function selectUser() {
+    const selectEl = document.getElementById('user-select');
+    const selectedUser = selectEl.value;
+    
+    if (!selectedUser) {
+        currentUser = '';
+        localStorage.removeItem('quiz_user_name');
+    } else {
+        currentUser = selectedUser;
+        localStorage.setItem('quiz_user_name', selectedUser);
+    }
+    
+    updateUserDisplay();
+}
+
+function updateUserDisplay() {
+    const displayEl = document.getElementById('current-user');
+    if (currentUser) {
+        displayEl.textContent = `✓ ${currentUser}`;
+    } else {
+        displayEl.textContent = '';
+    }
+}
+
+function recordQuizCompletion(quizId) {
+    if (!currentUser) {
+        alert('먼저 이름을 선택해주세요!');
+        event.preventDefault();
+        return;
+    }
+    
+    // 서버에 완료 기록
+    fetch('/api/quiz-complete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_name: currentUser,
+            quiz_id: quizId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        loadQuizStats();
+    })
+    .catch(err => console.error('오류:', err));
+}
 
 function loadQuizStats() {
     fetch('/api/quiz-stats')
@@ -207,6 +291,13 @@ function loadQuizStats() {
                 const countEl = document.getElementById('count-' + quiz_id);
                 if (countEl) {
                     countEl.textContent = stat.completed + '명';
+                }
+                
+                const namesEl = document.getElementById('names-' + quiz_id);
+                if (namesEl && stat.users.length > 0) {
+                    namesEl.innerHTML = stat.users
+                        .map(user => `<span class="name-badge">${user}</span>`)
+                        .join('');
                 }
             });
         })

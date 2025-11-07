@@ -47,11 +47,68 @@ cache = {
 
 # ✅ QUIZZES: 딕셔너리 형식 유지 (리스트 아님)
 QUIZZES = {
-    "ch01": {"title": "Ch01 - 머신러닝 개요", "gemini_link": "https://gemini.google.com/"},
-    "ch02": {"title": "Ch02 - 데이터 전처리", "gemini_link": "https://gemini.google.com/"},
-    "ch03": {"title": "Ch03 - 회귀", "gemini_link": "https://gemini.google.com/"},
-    "ch04": {"title": "Ch04 - 분류", "gemini_link": "https://gemini.google.com/"},
-    "ch05": {"title": "Ch05 - 모델 평가", "gemini_link": "https://gemini.google.com/share/58b3bbcd177d"},
+    # Ch01 - 여러 개 퀴즈
+    "ch01": [
+        {
+            "id": "ch01",
+            "title": "Ch01-1 - 머신러닝 개요",
+            "gemini_link": "https://gemini.google.com/share/cd026cf98350"
+        },
+       
+    ],
+    
+    # Ch02
+    "ch02": [
+        {
+            "id": "ch02-1",
+            "title": "Ch02-1 - 훈련 세트와 테스트 세트 퀴즈",
+            "gemini_link": "https://gemini.google.com/share/f1f3d7a544e3"
+        },
+        {
+            "id": "ch02-2",
+            "title": "Ch02-2 - 데이터 전처리",
+            "gemini_link": "https://gemini.google.com/share/d13ebaf4c393"
+        }
+    ],
+    
+    # 나머지도 같은 방식
+    "ch03": [
+        {
+            "id": "ch03",
+            "title": "Ch03 - 회귀알고리즘과 모델 규제",
+            "gemini_link": "https://gemini.google.com/share/f9fa458276d3"
+        }
+    ],
+      "ch04": [
+        {
+            "id": "ch04-1",
+            "title": "Ch04 - 다양한 알고리즘(1)",
+            "gemini_link": "https://gemini.google.com/share/4ea0e7137b74"
+        },
+         {
+            "id": "ch04-2",
+            "title": "Ch04 - 다양한 알고리즘(2)",
+            "gemini_link": "https://gemini.google.com/share/770a512a89ef"
+        }
+    ],
+       "ch05": [
+        {
+            "id": "ch05-1",
+            "title": "Ch05-1 - 결정트리",
+            "gemini_link": "https://gemini.google.com/share/58b3bbcd177d"
+        },
+         {
+            "id": "ch05-2",
+            "title": "Ch05-2 - 교차검증과 그리드서치",
+            "gemini_link": "https://gemini.google.com/share/5fe85dc6304d"
+        },
+         {
+            "id": "ch05-3",
+            "title": "Ch05-3 - 트리의 앙상블",
+            "gemini_link": "https://gemini.google.com/share/5e9c9c72468f"
+        }
+    ]
+    # ... ch04~ch10도 계속
 }
 
 # 레포지토리 이름과 사람 정보 매핑
@@ -219,16 +276,19 @@ def quiz_stats():
     quiz_results = load_quiz_results()
     stats = {}
     
-    # ✅ QUIZZES가 딕셔너리이므로 직접 접근
-    for chapter_id, quiz_data in QUIZZES.items():
-        count = sum(1 for user in quiz_results.values() 
-                   if chapter_id in user.get('completed_quizzes', []))
-        stats[chapter_id] = {
-            'completed': count,
-            'total': len(REPO_NAME_MAPPING)
-        }
+    for chapter, quiz_list in QUIZZES.items():
+        for quiz in quiz_list:
+            quiz_id = quiz['id']
+            # 완료한 사람 이름과 수 구하기
+            completed_users = [user for user in quiz_results.keys() 
+                              if quiz_id in quiz_results[user].get('completed_quizzes', [])]
+            stats[quiz_id] = {
+                'completed': len(completed_users),
+                'users': completed_users  # 이름 목록 추가
+            }
     
     return jsonify(stats)
+
 
 @app.route('/debug')
 def debug():
@@ -262,6 +322,34 @@ def refresh_cache():
     cache['last_updated'] = 0
     fetch_all_submissions()
     return jsonify({'success': True, 'message': 'Cache refreshed'})
+@app.route('/api/users')
+def get_users():
+    """한글 이름 목록 조회"""
+    users = list(REPO_NAME_MAPPING.values())
+    return jsonify(sorted(users))
+
+@app.route('/api/quiz-complete', methods=['POST'])
+def quiz_complete():
+    """퀴즈 완료 기록"""
+    data = request.get_json()
+    user_name = data.get('user_name')
+    quiz_id = data.get('quiz_id')
+    
+    if not user_name or not quiz_id:
+        return jsonify({'error': '필수 정보 누락'}), 400
+    
+    quiz_results = load_quiz_results()
+    
+    if user_name not in quiz_results:
+        quiz_results[user_name] = {'completed_quizzes': []}
+    
+    if quiz_id not in quiz_results[user_name]['completed_quizzes']:
+        quiz_results[user_name]['completed_quizzes'].append(quiz_id)
+    
+    save_quiz_results(quiz_results)
+    
+    return jsonify({'success': True})
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
