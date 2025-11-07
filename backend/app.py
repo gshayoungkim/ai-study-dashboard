@@ -7,18 +7,26 @@ from datetime import datetime
 import re
 import time
 
-# .env 파일 로드
-load_dotenv()
+# ✅ 로컬 개발 시만 로드 (Render에서는 환경 변수 사용)
+if os.path.exists('.env'):
+    load_dotenv()
 
 app = Flask(__name__)
 
-# GitHub 토큰 설정
+# GitHub 토큰 설정 (환경 변수에서 직접 읽기)
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
-print(f"GitHub Token: {GITHUB_TOKEN[:20] if GITHUB_TOKEN else 'None'}...")
+print(f"\n{'='*60}")
+print("[INIT] GitHub 토큰 확인")
+print(f"  토큰: {GITHUB_TOKEN[:20] if GITHUB_TOKEN else 'None'}...")
 
 if GITHUB_TOKEN:
-    g = Github(GITHUB_TOKEN)
+    try:
+        g = Github(GITHUB_TOKEN)
+        print(f"  ✓ GitHub 연결 성공")
+    except Exception as e:
+        print(f"  ✗ GitHub 연결 실패: {str(e)}")
+        g = None
 else:
     g = None
     print(f"  [WARNING] GitHub API 사용 불가")
@@ -32,38 +40,34 @@ cache = {
     'cache_duration': 300
 }
 
+# ✅ QUIZZES: 딕셔너리 형식 유지 (리스트 아님)
 QUIZZES = {
     "ch01": {"title": "Ch01 - 머신러닝 개요", "gemini_link": "https://gemini.google.com/"},
     "ch02": {"title": "Ch02 - 데이터 전처리", "gemini_link": "https://gemini.google.com/"},
     "ch03": {"title": "Ch03 - 회귀", "gemini_link": "https://gemini.google.com/"},
     "ch04": {"title": "Ch04 - 분류", "gemini_link": "https://gemini.google.com/"},
     "ch05": {"title": "Ch05 - 모델 평가", "gemini_link": "https://gemini.google.com/share/58b3bbcd177d"},
-    #"ch06": {"title": "Ch06 - 앙상블", "gemini_link": "https://gemini.google.com/"},
-    #"ch07": {"title": "Ch07 - 신경망", "gemini_link": "https://gemini.google.com/"},
-    #"ch08": {"title": "Ch08 - CNN", "gemini_link": "https://gemini.google.com/"},
-    #"ch09": {"title": "Ch09 - RNN", "gemini_link": "https://gemini.google.com/"},
-    #"ch10": {"title": "Ch10 - 고급 기법", "gemini_link": "https://gemini.google.com/"},
 }
 
 # 레포지토리 이름과 사람 정보 매핑
 REPO_NAME_MAPPING = {
-        "hayoung-kim": "김하영",
-        "minjeong-ko": "고민정",
-        "hagyeong-lee": "이하경",
-        "yeonseok-kim": "김연석",
-        "eunyong-choi": "최은용",
-        "sujeung-kim": "김수정",
-        "yunjae-gim": "김윤재",
-        "seongyeong-kim": "김선경",
-        "soyeon-park": "박소연",
-        "zeho-oh": "오제호",
-        "yeji-kim": "김예지",
-        "jihoon-jeong": "정지훈",
-        "SIEUN-LEE": "이시은",
-        "suhyeon-min": "민수현",
-        "sungkyeong-bae": "배성경",
-        "eunyong-choi": "최은용"
-    }
+    "hayoung-kim": "김하영",
+    "minjeong-ko": "고민정",
+    "hagyeong-lee": "이하경",
+    "yeonseok-kim": "김연석",
+    "eunyong-choi": "최은용",
+    "sujeung-kim": "김수정",
+    "yunjae-gim": "김윤재",
+    "seongyeong-kim": "김선경",
+    "soyeon-park": "박소연",
+    "zeho-oh": "오제호",
+    "yeji-kim": "김예지",
+    "jihoon-jeong": "정지훈",
+    "SIEUN-LEE": "이시은",
+    "suhyeon-min": "민수현",
+    "sungkyeong-bae": "배성경",
+}
+
 STUDY_CONFIG = {
     "org_name": "oracleaistudy",
     "book_name": "혼자 공부하는 머신러닝 딥러닝",
@@ -71,7 +75,7 @@ STUDY_CONFIG = {
 }
 
 def detect_chapter_from_filename(filename):
-    """파일명에서 챕터 번호를 감지 (매우 유연한 패턴)"""
+    """파일명에서 챕터 번호를 감지"""
     filename_lower = filename.lower()
     
     # 한글 문자 제거
@@ -80,25 +84,15 @@ def detect_chapter_from_filename(filename):
         if not ('\uac00' <= c <= '\ud7a3')
     )
     
-    print(f"[DEBUG] '{filename}' → '{filename_clean}'")
-    
-    # 패턴들 (순서대로 시도)
     patterns = [
-        # ch 형식: ch01, ch_01, ch-01, ch 01
         (r'ch[_\-\s]?(\d{2})', '형식: ch01'),
         (r'chapter[_\-\s]?(\d{2})', '형식: chapter01'),
         (r'ch[_\-\s]?([1-9])(?![0-9])', '형식: ch1'),
         (r'chapter[_\-\s]?([1-9])(?![0-9])', '형식: chapter1'),
-        
-        # chap 형식 (최은용처럼)
         (r'chap[_\-\s]?(\d{2})', '형식: chap01'),
         (r'chap[_\-\s]?([1-9])(?![0-9])', '형식: chap1'),
-        
-        # week 형식
         (r'week[_\-\s]?(\d{2})', '형식: week01'),
         (r'week[_\-\s]?([1-9])(?![0-9])', '형식: week1'),
-        
-        # 숫자만: 01-1, 02-3 등 (고민정처럼)
         (r'^(\d{1,2})[_\-\s]', '형식: 01-'),
         (r'^(\d{1,2})\.', '형식: 01.'),
     ]
@@ -108,13 +102,9 @@ def detect_chapter_from_filename(filename):
         if match:
             num = int(match.group(1))
             if 1 <= num <= 10:
-                chapter = f'ch{num:02d}'
-                print(f"  ✓ 감지됨: {chapter} ({pattern_desc})")
-                return chapter
+                return f'ch{num:02d}'
     
-    print(f"  ✗ 감지 실패")
     return None
-
 
 def load_quiz_results():
     if os.path.exists(QUIZ_DATA_FILE):
@@ -136,16 +126,10 @@ def fetch_all_submissions():
     current_time = time.time()
     
     if cache['submissions'] is not None and (current_time - cache['last_updated']) < cache['cache_duration']:
-        print(f"[CACHE] Using cached data")
         return cache['submissions']
-    
-    print(f"\n{'='*60}")
-    print("[GITHUB] GitHub에서 데이터 수집 중...")
-    print(f"{'='*60}")
     
     submission_matrix = {}
     
-    # 레포 이름 기준으로 초기화
     for repo_name, person_name in REPO_NAME_MAPPING.items():
         submission_matrix[repo_name] = {
             'name': person_name,
@@ -163,35 +147,22 @@ def fetch_all_submissions():
             submission_matrix[repo_name]['chapters'][ch_key] = False
     
     try:
-        print(f"\n[1] 조직 정보 수집: {STUDY_CONFIG['org_name']}")
         org = g.get_organization(STUDY_CONFIG['org_name'])
-        print(f"  ✓ 조직 찾음")
-        
-        print(f"\n[2] 조직 내 레포지토리 검색 중...")
         repos = list(org.get_repos())
-        print(f"  ✓ 총 {len(repos)}개 레포지토리 찾음")
         
         for repo in repos:
-            repo_name = repo.name  # 레포지토리 이름 (소유자 X)
-            print(f"\n  [{repo_name}] 확인 중...")
+            repo_name = repo.name
             
             if repo_name in REPO_NAME_MAPPING:
-                person_name = REPO_NAME_MAPPING[repo_name]
-                print(f"    → {person_name}")
-                
                 try:
                     contents = repo.get_contents("")
                     files = [f for f in contents if isinstance(f, dict) == False]
-                    
                     ipynb_files = [f for f in files if f.name.endswith('.ipynb')]
-                    print(f"      → .ipynb 파일: {len(ipynb_files)}개")
                     
-                    detected_count = 0
                     for file in ipynb_files:
                         detected_chapter = detect_chapter_from_filename(file.name)
                         
                         if detected_chapter:
-                            detected_count += 1
                             ch_key = detected_chapter
                             if not submission_matrix[repo_name]['submissions'][ch_key]['completed']:
                                 submission_matrix[repo_name]['submissions'][ch_key] = {
@@ -201,34 +172,17 @@ def fetch_all_submissions():
                                 }
                                 submission_matrix[repo_name]['chapters'][ch_key] = True
                                 submission_matrix[repo_name]['total_completed'] += 1
-                                print(f"        ✓ {file.name} → {ch_key}")
-                    
-                    print(f"      → 감지된 파일: {detected_count}개")
                 
                 except GithubException as e:
-                    print(f"    ✗ GitHub 에러: {e.status} - {e.data.get('message', 'Unknown error')}")
+                    print(f"[ERROR] {repo_name}: {e.status}")
                 except Exception as e:
-                    print(f"    ✗ 에러: {str(e)}")
-            else:
-                print(f"    → 스킵 (목록에 없음: {repo_name})")
+                    print(f"[ERROR] {repo_name}: {str(e)}")
     
-    except GithubException as e:
-        print(f"[ERROR] GitHub API 에러")
-        print(f"  상태: {e.status}")
-        print(f"  메시지: {e.data}")
     except Exception as e:
-        print(f"[ERROR] 예상치 못한 에러: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        print(f"[ERROR] 조직 접근 실패: {str(e)}")
     
     cache['submissions'] = submission_matrix
     cache['last_updated'] = current_time
-    
-    print(f"\n{'='*60}")
-    print("[완료] 데이터 수집 완료")
-    total_files = sum(d['total_completed'] for d in submission_matrix.values())
-    print(f"  → 총 {total_files}개 파일 감지")
-    print(f"{'='*60}\n")
     
     return submission_matrix
 
@@ -253,23 +207,21 @@ def progress():
 @app.route('/quiz')
 def quiz():
     return render_template('quiz.html', quizzes=QUIZZES)
+
 @app.route('/api/quiz-stats')
 def quiz_stats():
     """퀴즈 통계"""
     quiz_results = load_quiz_results()
     stats = {}
     
-    # 모든 퀴즈 ID에 대해 통계 생성
-    for chapter, quiz_list in QUIZZES.items():
-        for quiz in quiz_list:
-            quiz_id = quiz['id']
-            # 완료한 사람 수 세기
-            count = sum(1 for user in quiz_results.values() 
-                       if quiz_id in user.get('completed_quizzes', []))
-            stats[quiz_id] = {
-                'completed': count,
-                'total': len(REPO_NAME_MAPPING)
-            }
+    # ✅ QUIZZES가 딕셔너리이므로 직접 접근
+    for chapter_id, quiz_data in QUIZZES.items():
+        count = sum(1 for user in quiz_results.values() 
+                   if chapter_id in user.get('completed_quizzes', []))
+        stats[chapter_id] = {
+            'completed': count,
+            'total': len(REPO_NAME_MAPPING)
+        }
     
     return jsonify(stats)
 
@@ -288,11 +240,9 @@ def debug():
         
         for chapter_key, submission in data['submissions'].items():
             if submission['completed'] and submission.get('filename'):
-                detected_chapter = detect_chapter_from_filename(submission['filename'])
                 user_debug['files'].append({
                     'original_filename': submission['filename'],
-                    'detected_chapter': detected_chapter,
-                    'matches': detected_chapter == chapter_key,
+                    'detected_chapter': detect_chapter_from_filename(submission['filename']),
                     'chapter_key': chapter_key,
                     'url': submission['url']
                 })
@@ -305,8 +255,9 @@ def debug():
 def refresh_cache():
     cache['submissions'] = None
     cache['last_updated'] = 0
-    submissions = fetch_all_submissions()
+    fetch_all_submissions()
     return jsonify({'success': True, 'message': 'Cache refreshed'})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
