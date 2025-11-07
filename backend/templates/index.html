@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+    <div class="header-info">
+        <div class="info-card">
+            <h2>📊 스터디 진행 현황</h2>
+            <div class="info-grid">
+                <div class="stat">
+                    <div class="stat-value">{{ members_count }}</div>
+                    <div class="stat-label">참여자</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">10</div>
+                    <div class="stat-label">챕터</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">{{ current_progress }}</div>
+                    <div class="stat-label">현재 진행</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="heatmap-section">
+        <h2>🔥 전체 진도 현황</h2>
+        <div class="heatmap-table-wrapper">
+            <table class="heatmap-table">
+                <thead>
+                    <tr>
+                        <th class="name-col">참여자</th>
+                        <th class="ch-col">Ch01</th>
+                        <th class="ch-col">Ch02</th>
+                        <th class="ch-col">Ch03</th>
+                        <th class="ch-col">Ch04</th>
+                        <th class="ch-col">Ch05</th>
+                        <th class="ch-col">Ch06</th>
+                        <th class="ch-col">Ch07</th>
+                        <th class="ch-col">Ch08</th>
+                        <th class="ch-col">Ch09</th>
+                        <th class="ch-col">Ch10</th>
+                        <th class="total-col">진행률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set sorted_subs = submissions.items() | list | sort(attribute='1.name') %}
+                    {% for user_id, data in sorted_subs %}
+                    <tr>
+                        <td class="name-col">
+                            <strong>{{ data.name }}</strong>
+                        </td>
+                        {% for i in range(1, 11) %}
+                        {% set ch_key = 'ch' + '%02d' % i %}
+                        <td class="ch-col">
+                            {% if data.submissions.get(ch_key, {}).get('completed', False) %}
+                            <a href="{{ data.submissions.get(ch_key, {}).get('url', '#') }}" 
+                               target="_blank" 
+                               class="chapter-box completed">
+                                ✓
+                            </a>
+                            {% else %}
+                            <div class="chapter-box pending"></div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="total-col">
+                            <span class="count">{{ data.total_completed }}/10</span>
+                            <div class="bar">
+                                <div class="fill" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <h2>📈 진행도 차트</h2>
+        <div id="chart-container">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-page {
+    padding: 2rem;
+    background: #f5f5f5;
+}
+
+.header-info {
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.info-card h2 {
+    margin: 0 0 1.5rem 0;
+    color: #667eea;
+    font-size: 1.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #666;
+}
+
+.heatmap-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.heatmap-section h2 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+}
+
+.heatmap-table-wrapper {
+    overflow-x: auto;
+}
+
+.heatmap-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.heatmap-table th,
+.heatmap-table td {
+    padding: 1rem 0.5rem;
+    text-align: center;
+    border: 1px solid #eee;
+}
+
+.heatmap-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+}
+
+.heatmap-table th {
+    font-size: 0.9rem;
+    padding: 1rem 0.5rem;
+}
+
+.name-col {
+    width: 100px;
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.heatmap-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.heatmap-table tbody tr:hover {
+    background: #f0f0f0;
+}
+
+.ch-col {
+    width: 50px;
+    padding: 0.8rem 0.4rem;
+}
+
+.chapter-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    border: 2px solid #ddd;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chapter-box.completed {
+    background: #4CAF50;
+    color: white;
+    border-color: #45a049;
+    text-decoration: none;
+}
+
+.chapter-box.completed:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.chapter-box.pending {
+    background: #e8e8e8;
+    color: #ccc;
+    border-color: #d0d0d0;
+}
+
+.total-col {
+    width: 120px;
+    min-width: 120px;
+}
+
+.count {
+    display: block;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.bar {
+    width: 100%;
+    height: 5px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #4CAF50 100%);
+    transition: width 0.3s ease;
+}
+
+.chart-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.chart-section h2 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+}
+
+#chart-container {
+    position: relative;
+    height: 400px;
+}
+
+@media (max-width: 768px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .heatmap-table {
+        font-size: 0.9rem;
+    }
+    
+    .chapter-box {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counts = {
+        'Ch01': 0,
+        'Ch02': 0,
+        'Ch03': 0,
+        'Ch04': 0,
+        'Ch05': 0,
+        'Ch06': 0,
+        'Ch07': 0,
+        'Ch08': 0,
+        'Ch09': 0,
+        'Ch10': 0
+    };
+    
+    const submissions = {{ submissions | tojson }};
+    
+    Object.values(submissions).forEach(data => {
+        for (let i = 1; i <= 10; i++) {
+            const key = 'ch' + String(i).padStart(2, '0');
+            if (data.submissions && data.submissions[key] && data.submissions[key].completed) {
+                counts['Ch' + String(i).padStart(2, '0')]++;
+            }
+        }
+    });
+    
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(counts),
+            datasets: [{
+                label: '완료한 참여자',
+                data: Object.values(counts),
+                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                borderColor: 'rgba(102, 126, 234, 1)',
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        font: { size: 12 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: {{ members_count }},
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

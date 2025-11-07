@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Oracle AI Study{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h1>🌱 Oracle AI Study</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">대시보드</a></li>
+                <li><a href="/progress" class="nav-link">개인별 진도</a></li>
+                <li><a href="/quiz" class="nav-link">퀴즈</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>📚 혼자 공부하는 머신러닝 딥러닝</p>
+    </footer>
+</body>
+</html>
