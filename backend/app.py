@@ -14,7 +14,7 @@ import time
 app = Flask(__name__)
 
 # GitHub 토큰 설정 (환경 변수에서 직접 읽기)
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN') or os.getenv('GITHUB_TOKEN_BACKUP')
 
 print(f"\n{'='*60}")
 print("[INIT] GitHub 토큰 확인")
@@ -23,6 +23,8 @@ print(f"  토큰: {GITHUB_TOKEN[:20] if GITHUB_TOKEN else 'None'}...")
 if GITHUB_TOKEN:
     try:
         g = Github(GITHUB_TOKEN)
+        # 연결 테스트
+        g.get_user().login
         print(f"  ✓ GitHub 연결 성공")
     except Exception as e:
         print(f"  ✗ GitHub 연결 실패: {str(e)}")
