@@ -15,14 +15,11 @@ app = Flask(__name__)
 # GitHub 토큰 설정
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
-print(f"\n{'='*60}")
-print("[INIT] GitHub 토큰 확인")
+print(f"GitHub Token: {GITHUB_TOKEN[:20] if GITHUB_TOKEN else 'None'}...")
+
 if GITHUB_TOKEN:
-    print(f"  토큰: {GITHUB_TOKEN[:20]}...***")
     g = Github(GITHUB_TOKEN)
-    print(f"  ✓ GitHub 연결 성공")
 else:
-    print(f"  토큰: 없음 ❌")
     g = None
     print(f"  [WARNING] GitHub API 사용 불가")
 print(f"{'='*60}\n")
