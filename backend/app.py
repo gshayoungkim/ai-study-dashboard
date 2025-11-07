@@ -6,30 +6,26 @@ import json
 from datetime import datetime
 import re
 import time
-import os
-from dotenv import load_dotenv
 
-# .env 파일 로드 (로컬 개발 시)
-if os.path.exists('.env'):
-    load_dotenv('.env')
-elif os.path.exists('../.env'):
-    load_dotenv('../.env')
+# .env 파일 로드
+load_dotenv()
 
-# 환경 변수에서 직접 읽기
+app = Flask(__name__)
+
+# GitHub 토큰 설정
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 print(f"\n{'='*60}")
 print("[INIT] GitHub 토큰 확인")
-print(f"  토큰: {GITHUB_TOKEN[:20]}...***" if GITHUB_TOKEN else "  토큰: 없음 ❌")
-print(f"  토큰 길이: {len(GITHUB_TOKEN) if GITHUB_TOKEN else 0}")
+if GITHUB_TOKEN:
+    print(f"  토큰: {GITHUB_TOKEN[:20]}...***")
+    g = Github(GITHUB_TOKEN)
+    print(f"  ✓ GitHub 연결 성공")
+else:
+    print(f"  토큰: 없음 ❌")
+    g = None
+    print(f"  [WARNING] GitHub API 사용 불가")
 print(f"{'='*60}\n")
-
-if not GITHUB_TOKEN:
-    print("[WARNING] GITHUB_TOKEN이 설정되지 않았습니다!")
-    print("  Render 대시보드에서 Environment 변수를 확인하세요")
-load_dotenv()
-
-app = Flask(__name__)
 
 QUIZ_DATA_FILE = 'quiz_results.json'
 
