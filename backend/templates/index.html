@@ -3,27 +3,30 @@
 {% block content %}
 <div class="dashboard-page">
     <div class="header-info">
-        <div class="info-card">
-            <h2>📊 스터디 진행 현황</h2>
-            <div class="info-grid">
-                <div class="stat">
-                    <div class="stat-value">{{ members_count }}</div>
-                    <div class="stat-label">참여자</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">10</div>
-                    <div class="stat-label">챕터</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-value">{{ current_progress }}</div>
-                    <div class="stat-label">현재 진행</div>
-                </div>
+    <div class="info-card">
+        <h2>📊 스터디 진행 현황</h2>
+        <div class="info-grid">
+            <div class="stat">
+                <div class="stat-value">{{ members_count }}</div>
+                <div class="stat-label">참여자</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">PART1: Ch{{ part1_current }}</div>
+                <div class="stat-label">현재 진행</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">PART2: Ch{{ part2_current }}</div>
+                <div class="stat-label">현재 진행</div>
             </div>
         </div>
     </div>
+</div>
 
+    </div>
+
+    <!-- PART 1 진도 현황 -->
     <div class="heatmap-section">
-        <h2>🔥 전체 진도 현황</h2>
+        <h2 class="part-title part1-title">🔥 PART 1 - 전체 진도 현황</h2>
         <div class="heatmap-table-wrapper">
             <table class="heatmap-table">
                 <thead>
@@ -43,8 +46,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% set sorted_subs = submissions.items() | list | sort(attribute='1.name') %}
-                    {% for user_id, data in sorted_subs %}
+                    {% set sorted_part1 = part1_submissions.items() | list | sort(attribute='1.name') %}
+                    {% for user_id, data in sorted_part1 %}
                     <tr>
                         <td class="name-col">
                             <strong>{{ data.name }}</strong>
@@ -76,12 +79,68 @@
         </div>
     </div>
 
-    <div class="chart-section">
-        <h2>📈 진행도 차트</h2>
-        <div id="chart-container">
-            <canvas id="progressChart"></canvas>
+    <!-- PART 2 진도 현황 -->
+    <div class="heatmap-section">
+        <h2 class="part-title part2-title">🔥 PART 2 - 전체 진도 현황</h2>
+        <div class="heatmap-table-wrapper">
+            <table class="heatmap-table">
+                <thead>
+                    <tr>
+                        <th class="name-col">참여자</th>
+                        <th class="ch-col">Ch01</th>
+                        <th class="ch-col">Ch02</th>
+                        <th class="ch-col">Ch03</th>
+                        <th class="ch-col">Ch04</th>
+                        <th class="ch-col">Ch05</th>
+                        <th class="ch-col">Ch06</th>
+                        <th class="ch-col">Ch07</th>
+                        <th class="ch-col">Ch08</th>
+                        <th class="ch-col">Ch09</th>
+                        <th class="ch-col">Ch10</th>
+                        <th class="total-col">진행률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set sorted_part2 = part2_submissions.items() | list | sort(attribute='1.name') %}
+                    {% for user_id, data in sorted_part2 %}
+                    <tr>
+                        <td class="name-col">
+                            <strong>{{ data.name }}</strong>
+                        </td>
+                        {% for i in range(1, 11) %}
+                        {% set ch_key = 'ch' + '%02d' % i %}
+                        <td class="ch-col">
+                            {% if data.submissions.get(ch_key, {}).get('completed', False) %}
+                            <a href="{{ data.submissions.get(ch_key, {}).get('url', '#') }}" 
+                               target="_blank" 
+                               class="chapter-box completed">
+                                ✓
+                            </a>
+                            {% else %}
+                            <div class="chapter-box pending"></div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="total-col">
+                            <span class="count">{{ data.total_completed }}/10</span>
+                            <div class="bar">
+                                <div class="fill" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+
+<div class="chart-section">
+    <h2>📈 진행도 차트</h2>
+    <div id="chart-container">
+        <canvas id="progressChart"></canvas>
+    </div>
+</div>
+
 </div>
 
 <style>
@@ -139,7 +198,23 @@
 
 .heatmap-section h2 {
     margin: 0 0 1.5rem 0;
-    color: #333;
+}
+
+.part-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding: 12px 20px;
+    margin: -2rem -2rem 1.5rem -2rem;
+    border-radius: 12px 12px 0 0;
+    color: white;
+}
+
+.part1-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.part2-title {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .heatmap-table-wrapper {
@@ -159,11 +234,9 @@
 }
 
 .heatmap-table thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #f8f9fa;
+    color: #333;
     font-weight: bold;
-    position: sticky;
-    top: 0;
 }
 
 .heatmap-table th {
@@ -174,12 +247,7 @@
 .name-col {
     width: 100px;
     text-align: left;
-    position: sticky;
-    left: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
     font-weight: bold;
-    z-index: 10;
 }
 
 .heatmap-table tbody tr:nth-child(even) {
@@ -288,29 +356,41 @@
 }
 </style>
 
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const counts = {
-        'Ch01': 0,
-        'Ch02': 0,
-        'Ch03': 0,
-        'Ch04': 0,
-        'Ch05': 0,
-        'Ch06': 0,
-        'Ch07': 0,
-        'Ch08': 0,
-        'Ch09': 0,
-        'Ch10': 0
+    // PART1 데이터 집계
+    const part1Counts = {
+        'Ch01': 0, 'Ch02': 0, 'Ch03': 0, 'Ch04': 0, 'Ch05': 0,
+        'Ch06': 0, 'Ch07': 0, 'Ch08': 0, 'Ch09': 0, 'Ch10': 0
     };
     
-    const submissions = {{ submissions | tojson }};
+    // PART2 데이터 집계
+    const part2Counts = {
+        'Ch01': 0, 'Ch02': 0, 'Ch03': 0, 'Ch04': 0, 'Ch05': 0,
+        'Ch06': 0, 'Ch07': 0, 'Ch08': 0, 'Ch09': 0, 'Ch10': 0
+    };
     
-    Object.values(submissions).forEach(data => {
+    const part1 = {{ part1_submissions | tojson }};
+    const part2 = {{ part2_submissions | tojson }};
+    
+    // PART1 완료 횟수 계산
+    Object.values(part1).forEach(data => {
         for (let i = 1; i <= 10; i++) {
             const key = 'ch' + String(i).padStart(2, '0');
             if (data.submissions && data.submissions[key] && data.submissions[key].completed) {
-                counts['Ch' + String(i).padStart(2, '0')]++;
+                part1Counts['Ch' + String(i).padStart(2, '0')]++;
+            }
+        }
+    });
+    
+    // PART2 완료 횟수 계산
+    Object.values(part2).forEach(data => {
+        for (let i = 1; i <= 10; i++) {
+            const key = 'ch' + String(i).padStart(2, '0');
+            if (data.submissions && data.submissions[key] && data.submissions[key].completed) {
+                part2Counts['Ch' + String(i).padStart(2, '0')]++;
             }
         }
     });
@@ -319,15 +399,25 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: Object.keys(counts),
-            datasets: [{
-                label: '완료한 참여자',
-                data: Object.values(counts),
-                backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                borderColor: 'rgba(102, 126, 234, 1)',
-                borderWidth: 2,
-                borderRadius: 6
-            }]
+            labels: Object.keys(part1Counts),
+            datasets: [
+                {
+                    label: 'PART 1 참여자',
+                    data: Object.values(part1Counts),
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                },
+                {
+                    label: 'PART 2 참여자',
+                    data: Object.values(part2Counts),
+                    backgroundColor: 'rgba(156, 39, 176, 0.8)',
+                    borderColor: 'rgba(156, 39, 176, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -338,14 +428,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     labels: {
                         font: { size: 12 }
                     }
+                },
+                title: {
+                    display: false
                 }
             },
             scales: {
+                x: {
+                    stacked: true
+                },
                 y: {
+                    stacked: true,
                     beginAtZero: true,
-                    max: {{ members_count }},
                     ticks: {
-                        stepSize: 1
+                        stepSize: 2
                     }
                 }
             }

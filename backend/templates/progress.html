@@ -4,54 +4,112 @@
 <div class="progress-page">
     <h1>📚 개인별 진도 현황</h1>
     
-    <div class="progress-table-wrapper">
-        <table class="progress-table">
-            <thead>
-                <tr>
-                    <th class="name-col">참여자</th>
-                    <th class="ch-col">Ch01</th>
-                    <th class="ch-col">Ch02</th>
-                    <th class="ch-col">Ch03</th>
-                    <th class="ch-col">Ch04</th>
-                    <th class="ch-col">Ch05</th>
-                    <th class="ch-col">Ch06</th>
-                    <th class="ch-col">Ch07</th>
-                    <th class="ch-col">Ch08</th>
-                    <th class="ch-col">Ch09</th>
-                    <th class="ch-col">Ch10</th>
-                    <th class="total-col">진행률</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user_id, data in submissions.items() %}
-                <tr>
-                    <td class="name-col">
-                        <strong>{{ data.name }}</strong>
-                    </td>
-                    {% for i in range(1, 11) %}
-                    {% set ch_key = 'ch' + '%02d' % i %}
-                    <td class="ch-col">
-                        {% if data.submissions.get(ch_key, {}).get('completed', False) %}
-                        <a href="{{ data.submissions.get(ch_key, {}).get('url', '#') }}" 
-                           target="_blank" 
-                           class="chapter-box completed">
-                            ✓
-                        </a>
-                        {% else %}
-                        <div class="chapter-box pending"></div>
-                        {% endif %}
-                    </td>
+    <!-- PART 1 -->
+    <div class="part-section">
+        <h2 class="part-title part1-title">PART 1</h2>
+        <div class="progress-table-wrapper">
+            <table class="progress-table">
+                <thead>
+                    <tr>
+                        <th class="name-col">참여자</th>
+                        <th class="ch-col">Ch01</th>
+                        <th class="ch-col">Ch02</th>
+                        <th class="ch-col">Ch03</th>
+                        <th class="ch-col">Ch04</th>
+                        <th class="ch-col">Ch05</th>
+                        <th class="ch-col">Ch06</th>
+                        <th class="ch-col">Ch07</th>
+                        <th class="ch-col">Ch08</th>
+                        <th class="ch-col">Ch09</th>
+                        <th class="ch-col">Ch10</th>
+                        <th class="total-col">진행률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_id, data in part1_submissions.items() %}
+                    <tr>
+                        <td class="name-col">
+                            <strong>{{ data.name }}</strong>
+                        </td>
+                        {% for i in range(1, 11) %}
+                        {% set ch_key = 'ch' + '%02d' % i %}
+                        <td class="ch-col">
+                            {% if data.submissions.get(ch_key, {}).get('completed', False) %}
+                            <a href="{{ data.submissions.get(ch_key, {}).get('url', '#') }}" 
+                               target="_blank" 
+                               class="chapter-box completed">
+                                ✓
+                            </a>
+                            {% else %}
+                            <div class="chapter-box pending"></div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="total-col">
+                            <span class="count">{{ data.total_completed }}/10</span>
+                            <div class="bar">
+                                <div class="fill" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
-                    <td class="total-col">
-                        <span class="count">{{ data.total_completed }}/10</span>
-                        <div class="bar">
-                            <div class="fill" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PART 2 -->
+    <div class="part-section">
+        <h2 class="part-title part2-title">PART 2</h2>
+        <div class="progress-table-wrapper">
+            <table class="progress-table">
+                <thead>
+                    <tr>
+                        <th class="name-col">참여자</th>
+                        <th class="ch-col">Ch01</th>
+                        <th class="ch-col">Ch02</th>
+                        <th class="ch-col">Ch03</th>
+                        <th class="ch-col">Ch04</th>
+                        <th class="ch-col">Ch05</th>
+                        <th class="ch-col">Ch06</th>
+                        <th class="ch-col">Ch07</th>
+                        <th class="ch-col">Ch08</th>
+                        <th class="ch-col">Ch09</th>
+                        <th class="ch-col">Ch10</th>
+                        <th class="total-col">진행률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_id, data in part2_submissions.items() %}
+                    <tr>
+                        <td class="name-col">
+                            <strong>{{ data.name }}</strong>
+                        </td>
+                        {% for i in range(1, 11) %}
+                        {% set ch_key = 'ch' + '%02d' % i %}
+                        <td class="ch-col">
+                            {% if data.submissions.get(ch_key, {}).get('completed', False) %}
+                            <a href="{{ data.submissions.get(ch_key, {}).get('url', '#') }}" 
+                               target="_blank" 
+                               class="chapter-box completed">
+                                ✓
+                            </a>
+                            {% else %}
+                            <div class="chapter-box pending"></div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="total-col">
+                            <span class="count">{{ data.total_completed }}/10</span>
+                            <div class="bar">
+                                <div class="fill" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -68,9 +126,30 @@
     color: #333;
 }
 
+.part-section {
+    margin-bottom: 3rem;
+}
+
+.part-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 8px 8px 0 0;
+    color: white;
+}
+
+.part1-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.part2-title {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
 .progress-table-wrapper {
     background: white;
-    border-radius: 12px;
+    border-radius: 0 0 12px 12px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.1);
     overflow: auto;
 }
@@ -88,11 +167,9 @@
 }
 
 .progress-table thead {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #f8f9fa;
+    color: #333;
     font-weight: bold;
-    position: sticky;
-    top: 0;
 }
 
 .progress-table th {
@@ -103,12 +180,7 @@
 .name-col {
     width: 100px;
     text-align: left;
-    position: sticky;
-    left: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
     font-weight: bold;
-    z-index: 10;
 }
 
 .progress-table tbody tr:nth-child(even) {

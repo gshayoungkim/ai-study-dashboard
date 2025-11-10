@@ -125,15 +125,61 @@ REPO_NAME_MAPPING = {
     "zeho-oh": "오제호",
     "yeji-kim": "김예지",
     "jihoon-jeong": "정지훈",
-    "SIEUN-LEE": "이시은",
+    "sieun-lee": "이시은",
     "suhyeon-min": "민수현",
     "sungkyeong-bae": "배성경",
+    "jiwoo-yoon": "윤지우",
+    "bonwook-gu": "구본욱",
+    "sungmin-hwang": "황성민",
+    "soyeon-lee": "이소연",
+    "sooneun-bae": "배순은",
+    "dayeon-kang": "강다연",
+    "haeyin-lee": "이혜인",
+    
+
+
 }
+
+# PART1: 기존 멤버 (8명)
+PART1_MEMBERS = [
+    "minjeong-ko", 
+    "hagyeong-lee",
+    "yeonseok-kim",
+    "eunyong-choi",
+    "sujeung-kim",
+    "yunjae-gim",
+    "seongyeong-kim",
+    "soyeon-park",
+    "zeho-oh",
+    "jihoon-jeong",
+    "sieun-lee",
+    "suhyeon-min",
+    "sungkyeong-bae",
+    "suhyeon-min",
+    
+]
+
+# PART2: 기존 + 새로운 멤버 (8명)
+PART2_MEMBERS = [
+    
+    "yeji-kim",
+    "jiwoo-yoon",
+    "bonwook-gu",
+    "sungmin-hwang",
+    "soyeon-lee",
+    "sooneun-bae",
+    "dayeon-kang",
+    "haeyin-lee",
+
+
+]
+
 
 STUDY_CONFIG = {
     "org_name": "oracleaistudy",
     "book_name": "혼자 공부하는 머신러닝 딥러닝",
-    "current_progress": 10,
+    "part1_current_chapter": "6",      # PART1 현재 진행 챕터
+    "part2_current_chapter": "1-2",  # PART2 현재 진행 챕터
 }
 
 def detect_chapter_from_filename(filename):
@@ -253,18 +299,36 @@ def index():
     submissions = fetch_all_submissions()
     members_count = len(REPO_NAME_MAPPING)
     
+    # PART1과 PART2로 분리
+    part1_submissions = {k: v for k, v in submissions.items() if k in PART1_MEMBERS}
+    part2_submissions = {k: v for k, v in submissions.items() if k in PART2_MEMBERS}
+    
+    # 이름순 정렬
+    part1_sorted = dict(sorted(part1_submissions.items(), key=lambda x: x[1]['name']))
+    part2_sorted = dict(sorted(part2_submissions.items(), key=lambda x: x[1]['name']))
+    
     return render_template('index.html',
                          members_count=members_count,
-                         submissions=submissions,
-                         current_progress=10)
+                         part1_submissions=part1_sorted,
+                         part2_submissions=part2_sorted,
+                         part1_current=STUDY_CONFIG['part1_current_chapter'],
+                         part2_current=STUDY_CONFIG['part2_current_chapter'])
 
-@app.route('/progress')
+@app.route('/progress')  # ← 이 위치가 중요
 def progress():
     submissions = fetch_all_submissions()
-    sorted_submissions = dict(sorted(submissions.items(), key=lambda x: x[1]['name']))
+    
+    part1_submissions = {k: v for k, v in submissions.items() if k in PART1_MEMBERS}
+    part2_submissions = {k: v for k, v in submissions.items() if k in PART2_MEMBERS}
+    
+    part1_sorted = dict(sorted(part1_submissions.items(), key=lambda x: x[1]['name']))
+    part2_sorted = dict(sorted(part2_submissions.items(), key=lambda x: x[1]['name']))
+    
     return render_template('progress.html',
-                         submissions=sorted_submissions,
+                         part1_submissions=part1_sorted,
+                         part2_submissions=part2_sorted,
                          current_progress=10)
+
 
 @app.route('/quiz')
 def quiz():
@@ -352,5 +416,11 @@ def quiz_complete():
 
 
 if __name__ == '__main__':
+    # 등록된 라우트 출력
+    print("\n=== 등록된 라우트 ===")
+    for rule in app.url_map.iter_rules():
+        print(f"{rule.endpoint}: {rule.rule}")
+    print("=" * 40 + "\n")
+    
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
