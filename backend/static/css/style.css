@@ -99,9 +99,9 @@ body {
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 1.8rem;  /* 2.5rem에서 1.8rem으로 변경 */
     font-weight: bold;
-    color: var(--primary);
+    color: #667eea;
     margin-bottom: 0.5rem;
 }
 
