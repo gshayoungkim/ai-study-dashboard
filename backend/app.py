@@ -316,6 +316,10 @@ def index():
     submissions = fetch_all_submissions()
     members_count = len(REPO_NAME_MAPPING)
     
+    # PART별 분리
+    part1_submissions = {k: v for k, v in submissions.items() if k in PART1_MEMBERS}
+    part2_submissions = {k: v for k, v in submissions.items() if k in PART2_MEMBERS}
+    
     # 전체 진행률 계산
     total_completed = sum(data['total_completed'] for data in submissions.values())
     total_possible = members_count * 10
@@ -381,6 +385,8 @@ def index():
                          part1_avg=part1_avg,
                          part2_avg=part2_avg,
                          chapter_stats=chapter_stats,
+                         part1_submissions=part1_submissions,  # 추가
+                         part2_submissions=part2_submissions,  # 추가
                          quiz_top=quiz_top,
                          recent_papers=recent_papers,
                          part1_current=STUDY_CONFIG.get('part1_current_chapter', '6'),

@@ -360,50 +360,23 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // PART1 데이터 집계
-    const part1Counts = {
-        'Ch01': 0, 'Ch02': 0, 'Ch03': 0, 'Ch04': 0, 'Ch05': 0,
-        'Ch06': 0, 'Ch07': 0, 'Ch08': 0, 'Ch09': 0, 'Ch10': 0
-    };
-    
-    // PART2 데이터 집계
-    const part2Counts = {
-        'Ch01': 0, 'Ch02': 0, 'Ch03': 0, 'Ch04': 0, 'Ch05': 0,
-        'Ch06': 0, 'Ch07': 0, 'Ch08': 0, 'Ch09': 0, 'Ch10': 0
-    };
-    
-    const part1 = {{ part1_submissions | tojson }};
-    const part2 = {{ part2_submissions | tojson }};
-    
-    // PART1 완료 횟수 계산
-    Object.values(part1).forEach(data => {
-        for (let i = 1; i <= 10; i++) {
-            const key = 'ch' + String(i).padStart(2, '0');
-            if (data.submissions && data.submissions[key] && data.submissions[key].completed) {
-                part1Counts['Ch' + String(i).padStart(2, '0')]++;
-            }
-        }
-    });
-    
-    // PART2 완료 횟수 계산
-    Object.values(part2).forEach(data => {
-        for (let i = 1; i <= 10; i++) {
-            const key = 'ch' + String(i).padStart(2, '0');
-            if (data.submissions && data.submissions[key] && data.submissions[key].completed) {
-                part2Counts['Ch' + String(i).padStart(2, '0')]++;
-            }
-        }
-    });
-    
     const ctx = document.getElementById('progressChart').getContext('2d');
+    
+    const part1Stats = {{ part1_chapter_stats | tojson }};
+    const part2Stats = {{ part2_chapter_stats | tojson }};
+    
+    const part1Count = {{ part1_submissions | length }};
+    const part2Count = {{ part2_submissions | length }};
+    const totalCount = part1Count + part2Count;
+    
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: Object.keys(part1Counts),
+            labels: Object.keys(part1Stats),
             datasets: [
                 {
                     label: 'PART 1 참여자',
-                    data: Object.values(part1Counts),
+                    data: Object.values(part1Stats),
                     backgroundColor: 'rgba(102, 126, 234, 0.8)',
                     borderColor: 'rgba(102, 126, 234, 1)',
                     borderWidth: 2,
@@ -411,9 +384,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 {
                     label: 'PART 2 참여자',
-                    data: Object.values(part2Counts),
-                    backgroundColor: 'rgba(156, 39, 176, 0.8)',
-                    borderColor: 'rgba(156, 39, 176, 1)',
+                    data: Object.values(part2Stats),
+                    backgroundColor: 'rgba(240, 147, 251, 0.8)',
+                    borderColor: 'rgba(240, 147, 251, 1)',
                     borderWidth: 2,
                     borderRadius: 6
                 }
@@ -425,12 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     display: true,
-                    labels: {
-                        font: { size: 12 }
-                    }
-                },
-                title: {
-                    display: false
+                    position: 'top'
                 }
             },
             scales: {
@@ -440,8 +408,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 y: {
                     stacked: true,
                     beginAtZero: true,
+                    max: totalCount,  // Y축 최대값을 총 인원으로 설정
                     ticks: {
-                        stepSize: 2
+                        stepSize: 5
                     }
                 }
             }
@@ -449,4 +418,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
 {% endblock %}

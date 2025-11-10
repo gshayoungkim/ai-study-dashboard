@@ -375,33 +375,80 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 챕터별 완료 현황 차트
+    // 챕터별 완료 현황 차트 - PART1과 PART2 분리
     const chapterCtx = document.getElementById('chapterChart').getContext('2d');
     const chapterStats = {{ chapter_stats | tojson }};
+    
+    // PART별로 데이터 분리
+    const part1ChapterStats = {};
+    const part2ChapterStats = {};
+    
+    // Python에서 전달받은 데이터를 사용하여 PART별로 집계
+    const part1Submissions = {{ part1_submissions | tojson }};
+    const part2Submissions = {{ part2_submissions | tojson }};
+    
+    // PART1 챕터별 완료 횟수
+    for (let i = 1; i <= 10; i++) {
+        const chKey = 'ch' + String(i).padStart(2, '0');
+        let count = 0;
+        Object.values(part1Submissions).forEach(data => {
+            if (data.submissions && data.submissions[chKey] && data.submissions[chKey].completed) {
+                count++;
+            }
+        });
+        part1ChapterStats['Ch' + String(i).padStart(2, '0')] = count;
+    }
+    
+    // PART2 챕터별 완료 횟수
+    for (let i = 1; i <= 10; i++) {
+        const chKey = 'ch' + String(i).padStart(2, '0');
+        let count = 0;
+        Object.values(part2Submissions).forEach(data => {
+            if (data.submissions && data.submissions[chKey] && data.submissions[chKey].completed) {
+                count++;
+            }
+        });
+        part2ChapterStats['Ch' + String(i).padStart(2, '0')] = count;
+    }
     
     new Chart(chapterCtx, {
         type: 'bar',
         data: {
-            labels: Object.keys(chapterStats),
-            datasets: [{
-                label: '완료한 참여자 수',
-                data: Object.values(chapterStats),
-                backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                borderColor: 'rgba(102, 126, 234, 1)',
-                borderWidth: 2,
-                borderRadius: 6
-            }]
+            labels: Object.keys(part1ChapterStats),
+            datasets: [
+                {
+                    label: 'PART 1',
+                    data: Object.values(part1ChapterStats),
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                },
+                {
+                    label: 'PART 2',
+                    data: Object.values(part2ChapterStats),
+                    backgroundColor: 'rgba(240, 147, 251, 0.8)',
+                    borderColor: 'rgba(240, 147, 251, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
+                    display: true,
+                    position: 'top'
                 }
             },
             scales: {
+                x: {
+                    stacked: true
+                },
                 y: {
+                    stacked: true,
                     beginAtZero: true,
                     max: {{ members_count }},
                     ticks: {
@@ -412,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // PART별 진행률 도넛 차트
+    // PART별 진행률 도넛 차트 (기존 유지)
     const partCtx = document.getElementById('partChart').getContext('2d');
     
     new Chart(partCtx, {

@@ -2,11 +2,26 @@
 {% block title %}논문 게시판{% endblock %}
 {% block content %}
 <div class="papers-page">
-    <h1>📄 우리가 관심있는 논문</h1>
+    <div class="page-header">
+        <h1>📄 우리가 관심있는 논문</h1>
+        <button onclick="openModal()" class="btn-write">✍️ 글쓰기</button>
+    </div>
     
-    <!-- 논문 등록 폼 -->
-    <div class="paper-form-container">
-        <h2>논문 공유하기</h2>
+    <!-- 논문 목록 -->
+    <div class="papers-container">
+        <div id="papers-list" class="papers-list">
+            <!-- JavaScript로 동적 생성 -->
+        </div>
+    </div>
+</div>
+
+<!-- 글쓰기 모달 -->
+<div id="writeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>논문 공유하기</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
         <form id="paper-form">
             <div class="form-group">
                 <label for="title">제목 *</label>
@@ -30,17 +45,9 @@
             
             <div class="form-buttons">
                 <button type="submit" class="btn-submit">📤 업로드</button>
-                <button type="button" class="btn-cancel" onclick="resetForm()">❌ 취소</button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">❌ 취소</button>
             </div>
         </form>
-    </div>
-    
-    <!-- 논문 목록 -->
-    <div class="papers-container">
-        <h2>공유된 논문 목록</h2>
-        <div id="papers-list" class="papers-list">
-            <!-- JavaScript로 동적 생성 -->
-        </div>
     </div>
 </div>
 
@@ -51,24 +58,106 @@
     min-height: 100vh;
 }
 
-.papers-page h1 {
-    text-align: center;
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 2rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page-header h1 {
+    margin: 0;
     color: #333;
 }
 
-.paper-form-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    max-width: 800px;
-    margin: 0 auto 2rem;
+.btn-write {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
 }
 
-.paper-form-container h2 {
+.btn-write:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* 모달 스타일 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.modal-header h2 {
+    margin: 0;
     color: #667eea;
-    margin-bottom: 1.5rem;
+}
+
+.close {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close:hover {
+    color: #333;
+}
+
+#paper-form {
+    padding: 2rem;
 }
 
 .form-group {
@@ -139,11 +228,6 @@
     margin: 0 auto;
 }
 
-.papers-container h2 {
-    color: #667eea;
-    margin-bottom: 1.5rem;
-}
-
 .papers-list {
     display: grid;
     gap: 1.5rem;
@@ -164,9 +248,6 @@
 }
 
 .paper-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
     margin-bottom: 1rem;
 }
 
@@ -221,7 +302,26 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         submitPaper();
     });
+    
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function(event) {
+        const modal = document.getElementById('writeModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
 });
+
+function openModal() {
+    document.getElementById('writeModal').style.display = 'block';
+    document.body.style.overflow = 'hidden'; // 스크롤 방지
+}
+
+function closeModal() {
+    document.getElementById('writeModal').style.display = 'none';
+    document.body.style.overflow = 'auto'; // 스크롤 복원
+    resetForm();
+}
 
 function loadPapers() {
     fetch('/api/papers')
@@ -237,13 +337,11 @@ function loadPapers() {
             listEl.innerHTML = papers.map(paper => `
                 <div class="paper-card" onclick="location.href='/papers/${paper.id}'">
                     <div class="paper-header">
-                        <div>
-                            <h3 class="paper-title">${escapeHtml(paper.title)}</h3>
-                            <div class="paper-author">📝 ${escapeHtml(paper.author || '익명')}</div>
-                            <span class="paper-date">${formatDate(paper.created_at)}</span>
-                        </div>
+                        <h3 class="paper-title">${escapeHtml(paper.title)}</h3>
+                        <div class="paper-author">📝 ${escapeHtml(paper.author || '익명')}</div>
+                        <span class="paper-date">${formatDate(paper.created_at)}</span>
                     </div>
-                    ${paper.content ? `<p class="paper-content">${escapeHtml(paper.content)}</p>` : ''}
+                    ${paper.content ? `<p class="paper-content">${escapeHtml(paper.content).substring(0, 150)}${paper.content.length > 150 ? '...' : ''}</p>` : ''}
                     ${paper.link ? `<a href="${escapeHtml(paper.link)}" target="_blank" class="paper-link" onclick="event.stopPropagation()">🔗 논문 보기</a>` : ''}
                 </div>
             `).join('');
@@ -273,7 +371,7 @@ function submitPaper() {
     .then(data => {
         if (data.success) {
             alert('논문이 등록되었습니다!');
-            resetForm();
+            closeModal();
             loadPapers();
         } else {
             alert('오류: ' + data.error);
@@ -299,6 +397,7 @@ function formatDate(dateString) {
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
