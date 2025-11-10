@@ -118,6 +118,23 @@ QUIZZES = {
             "title": "Ch05-3 - 트리의 앙상블",
             "gemini_link": "https://gemini.google.com/share/5e9c9c72468f"
         }
+    ],
+     "ch06": [
+        {
+            "id": "ch06-1",
+            "title": "Ch06-1 - 군집 알고리즘",
+            "gemini_link": "https://gemini.google.com/share/6e89a727743c"
+        },
+         {
+            "id": "ch05-2",
+            "title": "Ch05-2 - 교차검증과 그리드서치",
+            "gemini_link": "https://gemini.google.com/share/5fe85dc6304d"
+        },
+         {
+            "id": "ch05-3",
+            "title": "Ch05-3 - 트리의 앙상블",
+            "gemini_link": "https://gemini.google.com/share/5e9c9c72468f"
+        }
     ]
     # ... ch04~ch10도 계속
 }
@@ -418,26 +435,45 @@ def get_users():
 
 @app.route('/api/quiz-complete', methods=['POST'])
 def quiz_complete():
-    """퀴즈 완료 기록 - Supabase에 저장"""
+    """퀴즈 완료 기록 - Supabase 또는 JSON"""
     try:
         data = request.get_json()
         user_name = data.get('user_name')
         quiz_id = data.get('quiz_id')
         
+        print(f"[DEBUG] 퀴즈 완료 요청: user={user_name}, quiz={quiz_id}")
+        
         if not user_name or not quiz_id:
             return jsonify({'error': '필수 정보 누락'}), 400
         
-        # Supabase에 삽입 (중복 시 무시)
-        response = supabase.table('quiz_completions').upsert({
-            'user_name': user_name,
-            'quiz_id': quiz_id,
-            'completed_at': datetime.now().isoformat()
-        }, on_conflict='user_name,quiz_id').execute()
+        if supabase:
+            # Supabase에 저장 (on_conflict 제거)
+            response = supabase.table('quiz_completions').upsert({
+                'user_name': user_name,
+                'quiz_id': quiz_id,
+                'completed_at': datetime.now().isoformat()
+            }).execute()
+            
+            print(f"[DEBUG] Supabase 응답: {response.data}")
+        else:
+            # JSON 파일에 저장 (기존 방식)
+            quiz_results = load_quiz_results()
+            
+            if user_name not in quiz_results:
+                quiz_results[user_name] = {'completed_quizzes': []}
+            
+            if quiz_id not in quiz_results[user_name]['completed_quizzes']:
+                quiz_results[user_name]['completed_quizzes'].append(quiz_id)
+            
+            save_quiz_results(quiz_results)
+            print(f"[DEBUG] JSON 저장 완료")
         
         return jsonify({'success': True})
     
     except Exception as e:
         print(f"[ERROR] 퀴즈 완료 기록 실패: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

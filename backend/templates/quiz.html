@@ -30,7 +30,7 @@
                         </div>
                         
                         <div class="quiz-body">
-                            <a href="{{ quiz.gemini_link }}" target="_blank" class="btn-quiz" onclick="recordQuizCompletion('{{ quiz.id }}')">
+                            <a href="#" class="btn-quiz" onclick="return recordQuizCompletion(event, '{{ quiz.id }}', '{{ quiz.gemini_link }}')">
                                 🤖 퀴즈 풀기
                             </a>
                         </div>
@@ -258,11 +258,12 @@ function updateUserDisplay() {
     }
 }
 
-function recordQuizCompletion(quizId) {
+function recordQuizCompletion(event, quizId, geminiLink) {
+    event.preventDefault();  // 기본 링크 동작 방지
+    
     if (!currentUser) {
         alert('먼저 이름을 선택해주세요!');
-        event.preventDefault();
-        return;
+        return false;
     }
     
     // 서버에 완료 기록
@@ -278,9 +279,18 @@ function recordQuizCompletion(quizId) {
     })
     .then(res => res.json())
     .then(data => {
-        loadQuizStats();
+        console.log('퀴즈 완료 기록 성공:', data);
+        loadQuizStats();  // 통계 새로고침
+        // Gemini 링크를 새 창으로 열기
+        window.open(geminiLink, '_blank');
     })
-    .catch(err => console.error('오류:', err));
+    .catch(err => {
+        console.error('퀴즈 완료 기록 실패:', err);
+        // 에러가 있어도 퀴즈 페이지는 열기
+        window.open(geminiLink, '_blank');
+    });
+    
+    return false;
 }
 
 function loadQuizStats() {
