@@ -172,6 +172,7 @@ REPO_NAME_MAPPING = {
 
 # PART1: 기존 멤버 (8명)
 PART1_MEMBERS = [
+    "hayoung-kim",
     "minjeong-ko", 
     "hagyeong-lee",
     "yeonseok-kim",
