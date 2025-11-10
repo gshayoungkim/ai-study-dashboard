@@ -135,6 +135,8 @@ REPO_NAME_MAPPING = {
     "sooneun-bae": "배순은",
     "dayeon-kang": "강다연",
     "haeyin-lee": "이혜인",
+    "jooyoung-lee": "이주영",
+
     
 
 
@@ -170,7 +172,7 @@ PART2_MEMBERS = [
     "sooneun-bae",
     "dayeon-kang",
     "haeyin-lee",
-
+    "jooyoung-lee"
 
 ]
 
