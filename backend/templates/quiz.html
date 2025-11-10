@@ -15,7 +15,13 @@
         </div>
         <p>각 챕터의 Gemini 퀴즈를 풀어보세요!</p>
     </div>
-
+       <!-- 🚀 리더보드 섹션 추가 -->
+    <div class="leaderboard-section">
+        <h2>🏆 퀴즈 리더보드</h2>
+        <div class="leaderboard-container" id="leaderboard">
+            <!-- JavaScript로 동적 생성 -->
+        </div>
+    </div>
     <div class="quiz-container">
         <div class="quiz-list">
             {% for chapter, quiz_list in quizzes.items() | sort %}
@@ -194,6 +200,117 @@
     border-radius: 15px;
     font-size: 0.8rem;
 }
+.leaderboard-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    margin: 2rem auto;
+    max-width: 900px;
+}
+
+.leaderboard-section h2 {
+    text-align: center;
+    color: #667eea;
+    margin-bottom: 1.5rem;
+}
+
+.leaderboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rank-badge {
+    min-width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    margin-right: 1rem;
+}
+
+.rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
+.rank-2 { background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%); }
+.rank-3 { background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%); }
+.rank-other { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+
+.user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.user-score {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.rocket-track {
+    flex: 2;
+    height: 40px;
+    background: linear-gradient(90deg, #e0e0e0 0%, #f5f5f5 100%);
+    border-radius: 20px;
+    position: relative;
+    margin: 0 1rem;
+    overflow: hidden;
+}
+
+.rocket-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #4CAF50 100%);
+    border-radius: 20px;
+    position: relative;
+    transition: width 1s ease-out;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 5px;
+}
+
+.rocket-icon {
+    font-size: 1.5rem;
+    animation: rocket-fly 2s ease-in-out infinite;
+}
+
+@keyframes rocket-fly {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.completed-count {
+    min-width: 80px;
+    text-align: right;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #667eea;
+}
 
 @media (max-width: 768px) {
     .quizzes-grid {
@@ -312,6 +429,93 @@ function loadQuizStats() {
             });
         })
         .catch(err => console.error('통계 로드 실패:', err));
+}
+function loadLeaderboard() {
+    fetch('/api/quiz-leaderboard')
+        .then(res => res.json())
+        .then(data => {
+            const leaderboardEl = document.getElementById('leaderboard');
+            
+            if (data.length === 0) {
+                leaderboardEl.innerHTML = '<p style="text-align: center; color: #999;">아직 퀴즈를 푼 사람이 없습니다.</p>';
+                return;
+            }
+            
+            // 최대 완료 횟수 계산 (프로그레스 바 비율용)
+            const maxCompleted = Math.max(...data.map(item => item.completed));
+            
+            leaderboardEl.innerHTML = data.map(item => {
+                const rankClass = item.rank === 1 ? 'rank-1' : 
+                                 item.rank === 2 ? 'rank-2' : 
+                                 item.rank === 3 ? 'rank-3' : 'rank-other';
+                
+                const progressPercent = (item.completed / maxCompleted) * 100;
+                
+                return `
+                    <div class="leaderboard-item">
+                        <div class="rank-badge ${rankClass}">
+                            ${item.rank <= 3 ? (item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : '🥉') : item.rank}
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">${item.name}</div>
+                            <div class="user-score">${item.completed}개 완료</div>
+                        </div>
+                        <div class="rocket-track">
+                            <div class="rocket-progress" style="width: ${progressPercent}%">
+                                <span class="rocket-icon">🚀</span>
+                            </div>
+                        </div>
+                        <div class="completed-count">${item.completed}개</div>
+                    </div>
+                `;
+            }).join('');
+        })
+        .catch(err => console.error('[ERROR] 리더보드 로드 실패:', err));
+}
+
+// 페이지 로드 시 리더보드 로드
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[INIT] 퀴즈 페이지 로드');
+    loadUsersList();
+    updateUserDisplay();
+    loadQuizStats();
+    loadLeaderboard();  // 리더보드 추가
+    
+    document.getElementById('user-select').addEventListener('change', selectUser);
+});
+
+// 퀴즈 완료 후 리더보드 새로고침
+function recordQuizCompletion(event, quizId, geminiLink) {
+    event.preventDefault();
+    
+    if (!currentUser) {
+        alert('먼저 이름을 선택해주세요!');
+        return false;
+    }
+    
+    fetch('/api/quiz-complete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_name: currentUser,
+            quiz_id: quizId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('[INFO] 퀴즈 완료 기록 성공:', data);
+        loadQuizStats();
+        loadLeaderboard();  // 리더보드 새로고침 추가
+        window.open(geminiLink, '_blank');
+    })
+    .catch(err => {
+        console.error('[ERROR] 퀴즈 완료 기록 실패:', err);
+        window.open(geminiLink, '_blank');
+    });
+    
+    return false;
 }
 </script>
 {% endblock %}

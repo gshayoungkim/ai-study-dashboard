@@ -478,6 +478,46 @@ def quiz_complete():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/quiz-leaderboard')
+def quiz_leaderboard():
+    """퀴즈 리더보드 - 완료 횟수별 순위"""
+    try:
+        if supabase:
+            # Supabase에서 데이터 조회
+            response = supabase.table('quiz_completions').select('*').execute()
+            
+            # 사용자별 완료 횟수 집계
+            user_counts = {}
+            for record in response.data:
+                user_name = record['user_name']
+                if user_name not in user_counts:
+                    user_counts[user_name] = 0
+                user_counts[user_name] += 1
+            
+        else:
+            # JSON 파일에서 데이터 조회
+            quiz_results = load_quiz_results()
+            user_counts = {
+                user: len(data.get('completed_quizzes', []))
+                for user, data in quiz_results.items()
+            }
+        
+        # 순위별로 정렬 (완료 횟수 많은 순)
+        leaderboard = sorted(
+            user_counts.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+        
+        return jsonify([
+            {'rank': idx + 1, 'name': name, 'completed': count}
+            for idx, (name, count) in enumerate(leaderboard)
+        ])
+    
+    except Exception as e:
+        print(f"[ERROR] 리더보드 조회 실패: {str(e)}")
+        return jsonify([]), 500
+
 if __name__ == '__main__':
     # 등록된 라우트 출력
     print("\n=== 등록된 라우트 ===")
