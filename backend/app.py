@@ -126,14 +126,14 @@ QUIZZES = {
             "gemini_link": "https://gemini.google.com/share/6e89a727743c"
         },
          {
-            "id": "ch05-2",
-            "title": "Ch05-2 - 교차검증과 그리드서치",
-            "gemini_link": "https://gemini.google.com/share/5fe85dc6304d"
+            "id": "ch06-2",
+            "title": "Ch06-2 - k-평균",
+            "gemini_link": "https://gemini.google.com/share/0345af73e04c"
         },
          {
             "id": "ch05-3",
-            "title": "Ch05-3 - 트리의 앙상블",
-            "gemini_link": "https://gemini.google.com/share/5e9c9c72468f"
+            "title": "Ch06-3 - 주성분 분석 퀴즈",
+            "gemini_link": "https://gemini.google.com/share/be17f7e135ad"
         }
     ]
     # ... ch04~ch10도 계속
