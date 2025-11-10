@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 import re
 import time
+from supabase import create_client, Client
 
 # 로컬 개발 환경 지원
 if os.path.exists('.env'):
@@ -36,6 +37,16 @@ else:
     g = None
     print(f"  [WARNING] GitHub API 사용 불가")
 print(f"{'='*60}\n")
+
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+print(f"\n{'='*60}")
+print("[INIT] Supabase 연결 확인")
+print(f"  URL: {SUPABASE_URL[:30]}..." if SUPABASE_URL else "  URL: None")
+print(f"{'='*60}\n")
+
 
 QUIZ_DATA_FILE = 'quiz_results.json'
 
@@ -338,23 +349,34 @@ def quiz():
 
 @app.route('/api/quiz-stats')
 def quiz_stats():
-    """퀴즈 통계"""
-    quiz_results = load_quiz_results()
-    stats = {}
+    """퀴즈 통계 - Supabase에서 조회"""
+    try:
+        # Supabase에서 모든 퀴즈 완료 기록 조회
+        response = supabase.table('quiz_completions').select('*').execute()
+        
+        stats = {}
+        
+        # 퀴즈별로 완료한 사람 집계
+        for chapter, quiz_list in QUIZZES.items():
+            for quiz in quiz_list:
+                quiz_id = quiz['id']
+                # 해당 퀴즈를 완료한 사람들 필터링
+                completed_users = [
+                    record['user_name'] 
+                    for record in response.data 
+                    if record['quiz_id'] == quiz_id
+                ]
+                
+                stats[quiz_id] = {
+                    'completed': len(completed_users),
+                    'users': completed_users
+                }
+        
+        return jsonify(stats)
     
-    for chapter, quiz_list in QUIZZES.items():
-        for quiz in quiz_list:
-            quiz_id = quiz['id']
-            # 완료한 사람 이름과 수 구하기
-            completed_users = [user for user in quiz_results.keys() 
-                              if quiz_id in quiz_results[user].get('completed_quizzes', [])]
-            stats[quiz_id] = {
-                'completed': len(completed_users),
-                'users': completed_users  # 이름 목록 추가
-            }
-    
-    return jsonify(stats)
-
+    except Exception as e:
+        print(f"[ERROR] 퀴즈 통계 조회 실패: {str(e)}")
+        return jsonify({}), 500
 
 @app.route('/debug')
 def debug():
@@ -396,26 +418,27 @@ def get_users():
 
 @app.route('/api/quiz-complete', methods=['POST'])
 def quiz_complete():
-    """퀴즈 완료 기록"""
-    data = request.get_json()
-    user_name = data.get('user_name')
-    quiz_id = data.get('quiz_id')
+    """퀴즈 완료 기록 - Supabase에 저장"""
+    try:
+        data = request.get_json()
+        user_name = data.get('user_name')
+        quiz_id = data.get('quiz_id')
+        
+        if not user_name or not quiz_id:
+            return jsonify({'error': '필수 정보 누락'}), 400
+        
+        # Supabase에 삽입 (중복 시 무시)
+        response = supabase.table('quiz_completions').upsert({
+            'user_name': user_name,
+            'quiz_id': quiz_id,
+            'completed_at': datetime.now().isoformat()
+        }, on_conflict='user_name,quiz_id').execute()
+        
+        return jsonify({'success': True})
     
-    if not user_name or not quiz_id:
-        return jsonify({'error': '필수 정보 누락'}), 400
-    
-    quiz_results = load_quiz_results()
-    
-    if user_name not in quiz_results:
-        quiz_results[user_name] = {'completed_quizzes': []}
-    
-    if quiz_id not in quiz_results[user_name]['completed_quizzes']:
-        quiz_results[user_name]['completed_quizzes'].append(quiz_id)
-    
-    save_quiz_results(quiz_results)
-    
-    return jsonify({'success': True})
-
+    except Exception as e:
+        print(f"[ERROR] 퀴즈 완료 기록 실패: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     # 등록된 라우트 출력
