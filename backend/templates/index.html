@@ -47,20 +47,30 @@
             <canvas id="chapterChart"></canvas>
         </div>
         
-        <!-- PART별 진행률 -->
+        <!-- 과제 제출 상태 비율 -->
         <div class="chart-card">
-            <h2>🎯 PART별 진행률</h2>
-            <canvas id="partChart"></canvas>
+            <h2>✅ 과제 제출 상태 비율</h2>
+            <canvas id="submissionChart"></canvas>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: rgba(102, 126, 234, 0.8)"></span>
+                    PART 1 (Ch{{ part1_current_ch }}까지): {{ part1_submit_rate }}%
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: rgba(240, 147, 251, 0.8)"></span>
+                    PART 2 (Ch{{ part2_current_ch }}까지): {{ part2_submit_rate }}%
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- TOP 3 섹션 -->
     <div class="top3-grid">
-        <!-- 스터디 TOP 3 -->
+        <!-- 스터디 PART 1 TOP 3 -->
         <div class="top3-card">
-            <h2>🏆 스터디 TOP 3</h2>
+            <h2>🏆 스터디 PART 1 TOP 3</h2>
             <div class="top3-list">
-                {% for repo_name, data in top_users %}
+                {% for repo_name, data in part1_top_users %}
                 <div class="top3-item">
                     <span class="rank-badge rank-{{ loop.index }}">
                         {% if loop.index == 1 %}🥇
@@ -79,12 +89,63 @@
             </div>
         </div>
         
-        <!-- 퀴즈 TOP 3 -->
+        <!-- 스터디 PART 2 TOP 3 -->
         <div class="top3-card">
-            <h2>🚀 퀴즈 TOP 3</h2>
+            <h2>🏆 스터디 PART 2 TOP 3</h2>
             <div class="top3-list">
-                {% if quiz_top %}
-                    {% for name, count in quiz_top %}
+                {% for repo_name, data in part2_top_users %}
+                <div class="top3-item">
+                    <span class="rank-badge rank-{{ loop.index }}">
+                        {% if loop.index == 1 %}🥇
+                        {% elif loop.index == 2 %}🥈
+                        {% else %}🥉{% endif %}
+                    </span>
+                    <div class="top3-info">
+                        <div class="top3-name">{{ data.name }}</div>
+                        <div class="top3-score">{{ data.total_completed }}/10 완료</div>
+                    </div>
+                    <div class="top3-progress">
+                        <div class="progress-bar" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 퀴즈 TOP 3 섹션 -->
+    <div class="top3-grid">
+        <!-- 퀴즈 PART 1 TOP 3 -->
+        <div class="top3-card">
+            <h2>🚀 퀴즈 PART 1 TOP 3</h2>
+            <div class="top3-list">
+                {% if part1_quiz_top %}
+                    {% for name, count in part1_quiz_top %}
+                    <div class="top3-item">
+                        <span class="rank-badge rank-{{ loop.index }}">
+                            {% if loop.index == 1 %}🥇
+                            {% elif loop.index == 2 %}🥈
+                            {% else %}🥉{% endif %}
+                        </span>
+                        <div class="top3-info">
+                            <div class="top3-name">{{ name }}</div>
+                            <div class="top3-score">{{ count }}개 완료</div>
+                        </div>
+                        <div class="quiz-count">{{ count }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-message">아직 퀴즈를 푼 사람이 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 퀴즈 PART 2 TOP 3 -->
+        <div class="top3-card">
+            <h2>🚀 퀴즈 PART 2 TOP 3</h2>
+            <div class="top3-list">
+                {% if part2_quiz_top %}
+                    {% for name, count in part2_quiz_top %}
                     <div class="top3-item">
                         <span class="rank-badge rank-{{ loop.index }}">
                             {% if loop.index == 1 %}🥇
@@ -116,6 +177,7 @@
                 {% for paper in recent_papers %}
                 <div class="paper-preview-card">
                     <div class="paper-preview-title">{{ paper.title }}</div>
+                    <div class="paper-preview-author">📝 {{ paper.author }}</div>
                     {% if paper.link %}
                     <a href="{{ paper.link }}" target="_blank" class="paper-preview-link">🔗 논문 보기</a>
                     {% endif %}
@@ -212,6 +274,27 @@
 
 .chart-card canvas {
     max-height: 300px;
+}
+
+.chart-legend {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
 }
 
 /* TOP 3 섹션 */
@@ -347,6 +430,12 @@
     margin-bottom: 0.5rem;
 }
 
+.paper-preview-author {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
 .paper-preview-link {
     color: #667eea;
     text-decoration: none;
@@ -377,15 +466,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 챕터별 완료 현황 차트 - PART1과 PART2 분리
     const chapterCtx = document.getElementById('chapterChart').getContext('2d');
-    const chapterStats = {{ chapter_stats | tojson }};
+    
+    const part1Submissions = {{ part1_submissions | tojson }};
+    const part2Submissions = {{ part2_submissions | tojson }};
     
     // PART별로 데이터 분리
     const part1ChapterStats = {};
     const part2ChapterStats = {};
-    
-    // Python에서 전달받은 데이터를 사용하여 PART별로 집계
-    const part1Submissions = {{ part1_submissions | tojson }};
-    const part2Submissions = {{ part2_submissions | tojson }};
     
     // PART1 챕터별 완료 횟수
     for (let i = 1; i <= 10; i++) {
@@ -459,21 +546,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // PART별 진행률 도넛 차트 (기존 유지)
-    const partCtx = document.getElementById('partChart').getContext('2d');
+    // 과제 제출 상태 비율 도넛 차트
+    const submissionCtx = document.getElementById('submissionChart').getContext('2d');
     
-    new Chart(partCtx, {
+    new Chart(submissionCtx, {
         type: 'doughnut',
         data: {
-            labels: ['PART 1', 'PART 2', '미완료'],
+            labels: ['PART 1 제출', 'PART 1 미제출', 'PART 2 제출', 'PART 2 미제출'],
             datasets: [{
                 data: [
-                    {{ part1_avg }},
-                    {{ part2_avg }},
-                    100 - {{ part1_avg }} - {{ part2_avg }}
+                    {{ part1_submit_rate }},
+                    {{ part1_not_submit_rate }},
+                    {{ part2_submit_rate }},
+                    {{ part2_not_submit_rate }}
                 ],
                 backgroundColor: [
                     'rgba(102, 126, 234, 0.8)',
+                    'rgba(224, 224, 224, 0.5)',
                     'rgba(240, 147, 251, 0.8)',
                     'rgba(224, 224, 224, 0.5)'
                 ],
@@ -485,7 +574,14 @@ document.addEventListener('DOMContentLoaded', function() {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + '%';
+                        }
+                    }
                 }
             }
         }

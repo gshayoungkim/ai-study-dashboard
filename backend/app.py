@@ -322,14 +322,83 @@ def index():
     part1_submissions = {k: v for k, v in submissions.items() if k in PART1_MEMBERS}
     part2_submissions = {k: v for k, v in submissions.items() if k in PART2_MEMBERS}
     
+    # 현재 진행 챕터 (범위 지원)
+    part1_current_str = STUDY_CONFIG.get('part1_current_chapter', '6')
+    part2_current_str = STUDY_CONFIG.get('part2_current_chapter', '2')
+    
+    # 챕터 범위를 리스트로 변환하는 함수
+    def parse_chapter_range(chapter_str):
+        """
+        '1-2' -> [1, 2]
+        '6' -> [6]
+        '3-4' -> [3, 4]
+        """
+        try:
+            if '-' in chapter_str:
+                start, end = chapter_str.split('-')
+                return list(range(int(start), int(end) + 1))
+            else:
+                return [int(chapter_str)]
+        except:
+            return [1]
+    
+    part1_chapters = parse_chapter_range(part1_current_str)
+    part2_chapters = parse_chapter_range(part2_current_str)
+    
+    # 마지막 챕터 번호 (제출률 계산용)
+    part1_current_ch = max(part1_chapters)
+    part2_current_ch = max(part2_chapters)
+    
+    # PART1 과제 제출 상태 (범위 내 모든 챕터 완료 여부)
+    part1_submitted = 0
+    for repo_name in PART1_MEMBERS:
+        if repo_name in submissions:
+            # 해당 범위의 모든 챕터를 완료했는지 확인
+            all_completed = True
+            for ch_num in part1_chapters:
+                ch_key = f'ch{ch_num:02d}'
+                if not submissions[repo_name]['submissions'][ch_key]['completed']:
+                    all_completed = False
+                    break
+            
+            if all_completed:
+                part1_submitted += 1
+    
+    part1_submit_rate = round((part1_submitted / len(PART1_MEMBERS)) * 100) if PART1_MEMBERS else 0
+    part1_not_submit_rate = 100 - part1_submit_rate
+    
+    # PART2 과제 제출 상태 (범위 내 모든 챕터 완료 여부)
+    part2_submitted = 0
+    for repo_name in PART2_MEMBERS:
+        if repo_name in submissions:
+            # 해당 범위의 모든 챕터를 완료했는지 확인
+            all_completed = True
+            for ch_num in part2_chapters:
+                ch_key = f'ch{ch_num:02d}'
+                if not submissions[repo_name]['submissions'][ch_key]['completed']:
+                    all_completed = False
+                    break
+            
+            if all_completed:
+                part2_submitted += 1
+    
+    part2_submit_rate = round((part2_submitted / len(PART2_MEMBERS)) * 100) if PART2_MEMBERS else 0
+    part2_not_submit_rate = 100 - part2_submit_rate
+    
     # 전체 진행률 계산
     total_completed = sum(data['total_completed'] for data in submissions.values())
     total_possible = members_count * 10
     avg_progress = round((total_completed / total_possible) * 100) if total_possible > 0 else 0
     
-    # TOP 3 완료자
-    top_users = sorted(
-        submissions.items(),
+    # PART별 TOP 3 완료자
+    part1_top_users = sorted(
+        part1_submissions.items(),
+        key=lambda x: x[1]['total_completed'],
+        reverse=True
+    )[:3]
+    
+    part2_top_users = sorted(
+        part2_submissions.items(),
         key=lambda x: x[1]['total_completed'],
         reverse=True
     )[:3]
@@ -357,8 +426,10 @@ def index():
         )
         chapter_stats[f'Ch{i:02d}'] = completed_count
     
-    # 퀴즈 TOP 3
-    quiz_top = []
+    # PART별 퀴즈 TOP 3
+    part1_quiz_top = []
+    part2_quiz_top = []
+    
     if supabase:
         try:
             response = supabase.table('quiz_completions').select('*').execute()
@@ -367,7 +438,16 @@ def index():
                 user_name = record['user_name']
                 user_counts[user_name] = user_counts.get(user_name, 0) + 1
             
-            quiz_top = sorted(user_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+            # PART1 멤버의 이름 목록 생성
+            part1_names = [REPO_NAME_MAPPING[repo] for repo in PART1_MEMBERS if repo in REPO_NAME_MAPPING]
+            part2_names = [REPO_NAME_MAPPING[repo] for repo in PART2_MEMBERS if repo in REPO_NAME_MAPPING]
+            
+            # PART별로 분리
+            part1_counts = {name: count for name, count in user_counts.items() if name in part1_names}
+            part2_counts = {name: count for name, count in user_counts.items() if name in part2_names}
+            
+            part1_quiz_top = sorted(part1_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+            part2_quiz_top = sorted(part2_counts.items(), key=lambda x: x[1], reverse=True)[:3]
         except:
             pass
     
@@ -383,16 +463,24 @@ def index():
     return render_template('index.html',
                          members_count=members_count,
                          avg_progress=avg_progress,
-                         top_users=top_users,
+                         part1_top_users=part1_top_users,
+                         part2_top_users=part2_top_users,
                          part1_avg=part1_avg,
                          part2_avg=part2_avg,
                          chapter_stats=chapter_stats,
-                         part1_submissions=part1_submissions,  # 추가
-                         part2_submissions=part2_submissions,  # 추가
-                         quiz_top=quiz_top,
+                         part1_submissions=part1_submissions,
+                         part2_submissions=part2_submissions,
+                         part1_quiz_top=part1_quiz_top,
+                         part2_quiz_top=part2_quiz_top,
+                         part1_submit_rate=part1_submit_rate,
+                         part1_not_submit_rate=part1_not_submit_rate,
+                         part2_submit_rate=part2_submit_rate,
+                         part2_not_submit_rate=part2_not_submit_rate,
+                         part1_current_ch=part1_current_str,  # 문자열 그대로 표시
+                         part2_current_ch=part2_current_str,  # 문자열 그대로 표시
                          recent_papers=recent_papers,
-                         part1_current=STUDY_CONFIG.get('part1_current_chapter', '6'),
-                         part2_current=STUDY_CONFIG.get('part2_current_chapter', '1-2'))
+                         part1_current=part1_current_str,
+                         part2_current=part2_current_str)
 
 @app.route('/progress')
 def progress():
