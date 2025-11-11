@@ -158,7 +158,8 @@ REPO_NAME_MAPPING = {
     "haeyin-lee": "이혜인",
     "jooyoung-lee": "이주영",
     "youlim-hong": "홍유림",
-    "heejoon-kang": "강희준"
+    "heejoon-kang": "강희준",
+    "chanho-ma": "마찬호"
 }
 
 PART1_MEMBERS = [
@@ -190,6 +191,7 @@ PART2_MEMBERS = [
     "jooyoung-lee",
     "youlim-hong",
     "heejoon-kang",
+    "chanho-ma",
 ]
 
 STUDY_CONFIG = {
