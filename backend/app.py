@@ -3,7 +3,7 @@ from github import Github, GithubException
 import os
 from dotenv import load_dotenv
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import time
 from supabase import create_client, Client
@@ -199,8 +199,81 @@ STUDY_CONFIG = {
     "book_name": "혼자 공부하는 머신러닝 딥러닝",
     "part1_current_chapter": "6",
     "part2_current_chapter": "1-2",
+     "org_name": "oracleaistudy",
+    
 }
 
+
+def fetch_all_submissions():
+    if not g:
+        print("[ERROR] GitHub 연결 불가능 (토큰 없음)")
+        return {}
+
+    current_time = time.time()
+    
+    # 캐시 유효기간 내라면 캐시 반환
+    if cache['submissions'] is not None and (current_time - cache['last_updated']) < cache['cache_duration']:
+        return cache['submissions']
+    
+    submission_matrix = {}
+
+    for repo_name, person_name in REPO_NAME_MAPPING.items():
+        submission_matrix[repo_name] = {
+            'name': person_name,
+            'submissions': {},
+            'total_completed': 0,
+            'chapters': {},
+        }
+        for i in range(1, 11):
+            ch_key = f'ch{i:02d}'
+            submission_matrix[repo_name]['submissions'][ch_key] = {
+                'completed': False,
+                'url': None,
+                'filename': None
+            }
+            submission_matrix[repo_name]['chapters'][ch_key] = False
+
+    try:
+        org = g.get_organization(STUDY_CONFIG['org_name'])
+        repos = list(org.get_repos())
+
+        for repo in repos:
+            repo_name = repo.name
+
+            if repo_name in REPO_NAME_MAPPING:
+                try:
+                    contents = repo.get_contents("")
+                    files = [f for f in contents if not isinstance(f, dict)]
+                    ipynb_files = [f for f in files if f.name.endswith('.ipynb')]
+
+                    for file in ipynb_files:
+                        detected_chapter = detect_chapter_from_filename(file.name)
+
+                        if detected_chapter:
+                            ch_key = detected_chapter
+                            if not submission_matrix[repo_name]['submissions'][ch_key]['completed']:
+                                submission_matrix[repo_name]['submissions'][ch_key] = {
+                                    'completed': True,
+                                    'url': file.html_url,
+                                    'filename': file.name
+                                }
+                                submission_matrix[repo_name]['chapters'][ch_key] = True
+                                submission_matrix[repo_name]['total_completed'] += 1
+
+                except GithubException as e:
+                    print(f"[ERROR] {repo_name}: {e.status}")
+                except Exception as e:
+                    print(f"[ERROR] {repo_name}: {str(e)}")
+
+    except Exception as e:
+        print(f"[ERROR] 조직 접근 실패: {str(e)}")
+
+    cache['submissions'] = submission_matrix
+    cache['last_updated'] = current_time
+
+    return submission_matrix
+
+    
 def detect_chapter_from_filename(filename):
     """파일명에서 챕터 번호를 감지"""
     filename_lower = filename.lower()
@@ -230,85 +303,6 @@ def detect_chapter_from_filename(filename):
                 return f'ch{num:02d}'
     
     return None
-
-def load_quiz_results():
-    if os.path.exists(QUIZ_DATA_FILE):
-        with open(QUIZ_DATA_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return {}
-
-def save_quiz_results(data):
-    with open(QUIZ_DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def fetch_all_submissions():
-    """GitHub 조직 내 레포지토리에서 제출 현황 수집"""
-    if not g:
-        print("[ERROR] GitHub 연결 불가능 (토큰 없음)")
-        return {}
-    
-    current_time = time.time()
-    
-    if cache['submissions'] is not None and (current_time - cache['last_updated']) < cache['cache_duration']:
-        return cache['submissions']
-    
-    submission_matrix = {}
-    
-    for repo_name, person_name in REPO_NAME_MAPPING.items():
-        submission_matrix[repo_name] = {
-            'name': person_name,
-            'submissions': {},
-            'total_completed': 0,
-            'chapters': {},
-        }
-        for i in range(1, 11):
-            ch_key = f'ch{i:02d}'
-            submission_matrix[repo_name]['submissions'][ch_key] = {
-                'completed': False,
-                'url': None,
-                'filename': None
-            }
-            submission_matrix[repo_name]['chapters'][ch_key] = False
-    
-    try:
-        org = g.get_organization(STUDY_CONFIG['org_name'])
-        repos = list(org.get_repos())
-        
-        for repo in repos:
-            repo_name = repo.name
-            
-            if repo_name in REPO_NAME_MAPPING:
-                try:
-                    contents = repo.get_contents("")
-                    files = [f for f in contents if isinstance(f, dict) == False]
-                    ipynb_files = [f for f in files if f.name.endswith('.ipynb')]
-                    
-                    for file in ipynb_files:
-                        detected_chapter = detect_chapter_from_filename(file.name)
-                        
-                        if detected_chapter:
-                            ch_key = detected_chapter
-                            if not submission_matrix[repo_name]['submissions'][ch_key]['completed']:
-                                submission_matrix[repo_name]['submissions'][ch_key] = {
-                                    'completed': True,
-                                    'url': file.html_url,
-                                    'filename': file.name
-                                }
-                                submission_matrix[repo_name]['chapters'][ch_key] = True
-                                submission_matrix[repo_name]['total_completed'] += 1
-                
-                except GithubException as e:
-                    print(f"[ERROR] {repo_name}: {e.status}")
-                except Exception as e:
-                    print(f"[ERROR] {repo_name}: {str(e)}")
-    
-    except Exception as e:
-        print(f"[ERROR] 조직 접근 실패: {str(e)}")
-    
-    cache['submissions'] = submission_matrix
-    cache['last_updated'] = current_time
-    
-    return submission_matrix
 
 # =========================
 # 라우트 정의
@@ -462,6 +456,8 @@ def index():
         except:
             pass
     
+
+    
     return render_template('index.html',
                          members_count=members_count,
                          avg_progress=avg_progress,
@@ -478,11 +474,14 @@ def index():
                          part1_not_submit_rate=part1_not_submit_rate,
                          part2_submit_rate=part2_submit_rate,
                          part2_not_submit_rate=part2_not_submit_rate,
-                         part1_current_ch=part1_current_str,  # 문자열 그대로 표시
-                         part2_current_ch=part2_current_str,  # 문자열 그대로 표시
+                         part1_current_ch=part1_current_str,
+                         part2_current_ch=part2_current_str,
                          recent_papers=recent_papers,
-                         part1_current=part1_current_str,
-                         part2_current=part2_current_str)
+                     )
+
+
+
+
 
 @app.route('/progress')
 def progress():
@@ -770,6 +769,107 @@ def refresh_cache():
     cache['last_updated'] = 0
     fetch_all_submissions()
     return jsonify({'success': True, 'message': 'Cache refreshed'})
+
+@app.route('/ranking')
+def ranking():
+    """종합 랭킹 페이지"""
+    submissions = fetch_all_submissions()
+    
+    # 전체 랭킹 계산
+    rankings = []
+    for repo_name, data in submissions.items():
+        name = data['name']
+        chapter_score = data['total_completed'] * 10
+        
+        # 퀴즈 점수 및 개수
+        quiz_count = 0
+        quiz_score = 0
+        if supabase:
+            try:
+                response = supabase.table('quiz_completions').select('*').eq('user_name', name).execute()
+                quiz_count = len(response.data)
+                quiz_score = quiz_count * 5
+            except:
+                pass
+        
+        # 논문 점수 및 개수
+        paper_count = 0
+        paper_score = 0
+        if supabase:
+            try:
+                response = supabase.table('papers').select('*').eq('author', name).execute()
+                paper_count = len(response.data)
+                paper_score = paper_count * 2
+            except:
+                pass
+        
+        total_score = chapter_score + quiz_score + paper_score
+        
+        
+        # 뱃지 계산
+        badges = []
+        
+        # 💎 완벽주의자: 전체 챕터 완료
+        if data['total_completed'] >= 10:
+            badges.append({'icon': '💎', 'name': '완벽주의자'})
+        
+        # 🎯 퀴즈 마스터: 퀴즈 10개 이상 완료
+        if quiz_count >= 10:
+            badges.append({'icon': '🎯', 'name': '퀴즈 마스터'})
+        
+        # 📚 북웜: 논문 공유 5회 이상
+        if paper_count >= 5:
+            badges.append({'icon': '📚', 'name': '북웜'})
+        
+        # 🥇 골드 러너: 6챕터 이상 완료
+        if data['total_completed'] >= 6:
+            badges.append({'icon': '🥇', 'name': '골드 러너'})
+        
+        # 🔥 불꽃 학습자: 3챕터 이상 완료
+        if data['total_completed'] >= 3:
+            badges.append({'icon': '🔥', 'name': '불꽃 학습자'})
+        
+        
+        # 레벨 계산
+        if total_score >= 150:
+            level = "🏆 그랜드 마스터"
+            level_color = "#FFD700"
+        elif total_score >= 100:
+            level = "💎 마스터"
+            level_color = "#C0C0C0"
+        elif total_score >= 70:
+            level = "⭐ 전문가"
+            level_color = "#CD7F32"
+        elif total_score >= 40:
+            level = "🔥 열정적인 학습자"
+            level_color = "#FF6B6B"
+        else:
+            level = "🌱 초보 학습자"
+            level_color = "#51CF66"
+        
+        rankings.append({
+            'name': name,
+            'repo_name': repo_name,
+            'total_score': total_score,
+            'chapter_score': chapter_score,
+            'quiz_score': quiz_score,
+            'paper_score': paper_score,
+            'quiz_count': quiz_count,
+            'paper_count': paper_count,
+            'badges': badges,
+            'level': level,
+            'level_color': level_color,
+            'chapters_completed': data['total_completed'],
+        })
+    
+    # 점수순 정렬
+    rankings.sort(key=lambda x: x['total_score'], reverse=True)
+    
+    # 순위 부여
+    for idx, rank_data in enumerate(rankings, 1):
+        rank_data['rank'] = idx
+    
+    return render_template('ranking.html', rankings=rankings)
 
 if __name__ == '__main__':
     print("\n=== 등록된 라우트 ===")
