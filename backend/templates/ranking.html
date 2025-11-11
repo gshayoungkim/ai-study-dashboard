@@ -40,54 +40,68 @@
     </div>
 </div>
     
-    <!-- TOP 3 포디움 -->
     <div class="podium-section">
-        {% if rankings|length >= 3 %}
-        <div class="podium">
-            <!-- 2등 -->
-            <div class="podium-place second">
-                <div class="medal">🥈</div>
-                <div class="player-name">{{ rankings[1].name }}</div>
-                <div class="player-level" style="color: {{ rankings[1].level_color }}">{{ rankings[1].level }}</div>
-                <div class="player-badges">
-                    {% for badge in rankings[1].badges[:3] %}
-                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
-                    {% endfor %}
-                </div>
-                <div class="player-score">{{ rankings[1].total_score }}점</div>
-                <div class="podium-box">2nd</div>
+    {% if top_ranks %}
+    <div class="podium">
+        <!-- 2등 -->
+        {% if 2 in top_ranks %}
+        <div class="podium-place second">
+            <div class="medal">🥈</div>
+            {% for player in top_ranks[2] %}
+            <div class="player-name">{{ player.name }}</div>
+            {% endfor %}
+            {% set first_player = top_ranks[2][0] %}
+            <div class="player-level" style="color: {{ first_player.level_color }}">{{ first_player.level }}</div>
+            <div class="player-badges">
+                {% for badge in first_player.badges[:3] %}
+                    <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                {% endfor %}
             </div>
-            
-            <!-- 1등 -->
-            <div class="podium-place first">
-                <div class="medal">🥇</div>
-                <div class="player-name">{{ rankings[0].name }}</div>
-                <div class="player-level" style="color: {{ rankings[0].level_color }}">{{ rankings[0].level }}</div>
-                <div class="player-badges">
-                    {% for badge in rankings[0].badges[:3] %}
-                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
-                    {% endfor %}
-                </div>
-                <div class="player-score">{{ rankings[0].total_score }}점</div>
-                <div class="podium-box champion">1st</div>
+            <div class="player-score">{{ first_player.total_score }}점</div>
+            <div class="podium-box">2nd</div>
+        </div>
+        {% endif %}
+        
+        <!-- 1등 -->
+        {% if 1 in top_ranks %}
+        <div class="podium-place first">
+            <div class="medal">🥇</div>
+            {% for player in top_ranks[1] %}
+            <div class="player-name">{{ player.name }}</div>
+            {% endfor %}
+            {% set first_player = top_ranks[1][0] %}
+            <div class="player-level" style="color: {{ first_player.level_color }}">{{ first_player.level }}</div>
+            <div class="player-badges">
+                {% for badge in first_player.badges[:3] %}
+                    <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                {% endfor %}
             </div>
-            
-            <!-- 3등 -->
-            <div class="podium-place third">
-                <div class="medal">🥉</div>
-                <div class="player-name">{{ rankings[2].name }}</div>
-                <div class="player-level" style="color: {{ rankings[2].level_color }}">{{ rankings[2].level }}</div>
-                <div class="player-badges">
-                    {% for badge in rankings[2].badges[:3] %}
-                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
-                    {% endfor %}
-                </div>
-                <div class="player-score">{{ rankings[2].total_score }}점</div>
-                <div class="podium-box">3rd</div>
+            <div class="player-score">{{ first_player.total_score }}점</div>
+            <div class="podium-box champion">1st</div>
+        </div>
+        {% endif %}
+        
+        <!-- 3등 -->
+        {% if 3 in top_ranks %}
+        <div class="podium-place third">
+            <div class="medal">🥉</div>
+            {% for player in top_ranks[3] %}
+            <div class="player-name">{{ player.name }}</div>
+            {% endfor %}
+            {% set first_player = top_ranks[3][0] %}
+            <div class="player-level" style="color: {{ first_player.level_color }}">{{ first_player.level }}</div>
+            <div class="player-badges">
+                {% for badge in first_player.badges[:3] %}
+                    <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                {% endfor %}
             </div>
+            <div class="player-score">{{ first_player.total_score }}점</div>
+            <div class="podium-box">3rd</div>
         </div>
         {% endif %}
     </div>
+    {% endif %}
+</div>
     
     <!-- 전체 랭킹 테이블 -->
     <div class="ranking-table-section">
@@ -284,10 +298,10 @@
 }
 
 .player-name {
-    font-size: 1.3rem;
+    font-size: 1.1rem;  /* 동점자 여러명일 경우 작게 */
     font-weight: bold;
     color: #333;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
 }
 
 .player-level {

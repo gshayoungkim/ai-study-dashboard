@@ -272,7 +272,6 @@ def fetch_all_submissions():
     cache['last_updated'] = current_time
 
     return submission_matrix
-
     
 def detect_chapter_from_filename(filename):
     """파일명에서 챕터 번호를 감지"""
@@ -865,11 +864,27 @@ def ranking():
     # 점수순 정렬
     rankings.sort(key=lambda x: x['total_score'], reverse=True)
     
-    # 순위 부여
-    for idx, rank_data in enumerate(rankings, 1):
-        rank_data['rank'] = idx
+    # 순위 부여 (동점 처리)
+    current_rank = 0
+    prev_score = None
+    for idx, data in enumerate(rankings, start=1):
+        if data['total_score'] != prev_score:
+            current_rank = idx
+            prev_score = data['total_score']
+        data['rank'] = current_rank
     
-    return render_template('ranking.html', rankings=rankings)
+    # TOP 3 순위별 그룹 생성
+    top_ranks = {}
+    for rank_data in rankings:
+        rank = rank_data['rank']
+        if rank <= 3:
+            if rank not in top_ranks:
+                top_ranks[rank] = []
+            top_ranks[rank].append(rank_data)
+    
+    return render_template('ranking.html', 
+                         rankings=rankings,
+                         top_ranks=top_ranks)
 
 if __name__ == '__main__':
     print("\n=== 등록된 라우트 ===")
