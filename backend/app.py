@@ -129,6 +129,23 @@ QUIZZES = {
             "title": "Ch06-3 - 주성분 분석 퀴즈",
             "gemini_link": "https://gemini.google.com/share/be17f7e135ad"
         }
+    ],
+        "ch07": [
+        {
+            "id": "ch07-1",
+            "title": "Ch07-1 - 인공 신경망",
+            "gemini_link": "https://gemini.google.com/share/07861a505086"
+        },
+        {
+            "id": "ch07-2",
+            "title": "Ch0-2 - 심층 신경망",
+            "gemini_link": "https://gemini.google.com/share/690bd417b27e"
+        },
+        {
+            "id": "ch07-3",
+            "title": "Ch07-3 - 신경망 모델 훈련",
+            "gemini_link": "https://gemini.google.com/share/006b17105893"
+        }
     ]
 }
 
@@ -202,7 +219,7 @@ PART2_MEMBERS = [
 STUDY_CONFIG = {
     "org_name": "oracleaistudy",
     "book_name": "혼자 공부하는 머신러닝 딥러닝",
-    "part1_current_chapter": "6",
+    "part1_current_chapter": "7",
     "part2_current_chapter": "1-2",
      "org_name": "oracleaistudy",
     

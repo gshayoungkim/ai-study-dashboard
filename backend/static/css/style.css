@@ -362,7 +362,146 @@ body {
     height: 300px;
     margin-top: 1rem;
 }
+/* 모달 스타일 */
+.quiz-modal {
+    display: none;
+    position: fixed; /* ⭐ 중요: fixed */
+    z-index: 9999; /* ⭐ 매우 높은 값 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    animation: fadeIn 0.3s;
+}
 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.quiz-modal-content {
+    position: relative;
+    background-color: white;
+    margin: 2% auto;
+    width: 90%;
+    max-width: 1200px;
+    height: 90vh;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s;
+    z-index: 10000; /* ⭐ 추가 */
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.quiz-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid #eee;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.quiz-modal-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.quiz-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.quiz-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.quiz-modal-body {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+}
+
+#quiz-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.quiz-modal-footer {
+    padding: 1.5rem;
+    border-top: 2px solid #eee;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    background: #f9f9f9;
+    border-radius: 0 0 12px 12px; /* ⭐ 추가 */
+}
+
+.btn-modal-complete {
+    background: #4CAF50;
+    color: white;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-modal-complete:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.btn-modal-cancel {
+    background: #666;
+    color: white;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-modal-cancel:hover {
+    background: #555;
+}
+
+@media (max-width: 768px) {
+    .quiz-modal-content {
+        width: 95%;
+        height: 95vh;
+        margin: 2.5% auto;
+    }
+}
 /* 반응형 */
 @media (max-width: 768px) {
     .content-grid {
