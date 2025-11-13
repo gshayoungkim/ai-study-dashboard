@@ -179,6 +179,7 @@ REPO_NAME_MAPPING = {
     "chanho-ma": "마찬호",
     "jooyoung-roh": "노주영",
     "sulim-lee": "이수림",
+    "yoonjung-koo": "구윤정",
 
 }
 
@@ -214,6 +215,7 @@ PART2_MEMBERS = [
     "chanho-ma",
     "jooyoung-roh",
     "sulim-lee",
+    "yoonjung-koo",
 ]
 
 STUDY_CONFIG = {
