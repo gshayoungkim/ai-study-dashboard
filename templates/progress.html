@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+    <div class="header-info">
+    <div class="info-card">
+        <h2>📊 개인별 스터디 진행 현황</h2>
+        <div class="info-grid">
+           
+            <div class="stat">
+                <div class="stat-label">PART1 진행 중</div>
+                <div class="stat-value"> Ch07</div>
+                
+            </div>
+            <div class="stat">
+                <div class="stat-label">PART2 진행 중</div>
+                <div class="stat-value"> Ch01-02</div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    <!-- PART 1 진도 현황 -->
+    <div class="heatmap-section">
+        <h2 class="part-title part1-title">🔥 PART 1 - 전체 진도 현황</h2>
+        <div class="heatmap-table-wrapper">
+            <table class="heatmap-table">
+                <thead>
+                    <tr>
+                        <th class="name-col">참여자</th>
+                        <th class="ch-col">Ch01</th>
+                        <th class="ch-col">Ch02</th>
+                        <th class="ch-col">Ch03</th>
+                        <th class="ch-col">Ch04</th>
+                        <th class="ch-col">Ch05</th>
+                        <th class="ch-col">Ch06</th>
+                        <th class="ch-col">Ch07</th>
+                        <th class="ch-col">Ch08</th>
+                        <th class="ch-col">Ch09</th>
+                        <th class="ch-col">Ch10</th>
+                        <th class="total-col">진행률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set sorted_part1 = part1_submissions.items() | list | sort(attribute='1.name') %}
+                    {% for user_id, data in sorted_part1 %}
+                    <tr>
+                        <td class="name-col">
+                            <strong>{{ data.name }}</strong>
+                        </td>
+                        {% for i in range(1, 11) %}
+                        {% set ch_key = 'ch' + '%02d' % i %}
+                        <td class="ch-col">
+                            {% if data.submissions.get(ch_key, {}).get('completed', False) %}
+                            <a href="{{ data.submissions.get(ch_key, {}).get('url', '#') }}" 
+                               target="_blank" 
+                               class="chapter-box completed">
+                                ✓
+                            </a>
+                            {% else %}
+                            <div class="chapter-box pending"></div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="total-col">
+                            <span class="count">{{ data.total_completed }}/10</span>
+                            <div class="bar">
+                                <div class="fill" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PART 2 진도 현황 -->
+    <div class="heatmap-section">
+        <h2 class="part-title part2-title">🔥 PART 2 - 전체 진도 현황</h2>
+        <div class="heatmap-table-wrapper">
+            <table class="heatmap-table">
+                <thead>
+                    <tr>
+                        <th class="name-col">참여자</th>
+                        <th class="ch-col">Ch01</th>
+                        <th class="ch-col">Ch02</th>
+                        <th class="ch-col">Ch03</th>
+                        <th class="ch-col">Ch04</th>
+                        <th class="ch-col">Ch05</th>
+                        <th class="ch-col">Ch06</th>
+                        <th class="ch-col">Ch07</th>
+                        <th class="ch-col">Ch08</th>
+                        <th class="ch-col">Ch09</th>
+                        <th class="ch-col">Ch10</th>
+                        <th class="total-col">진행률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set sorted_part2 = part2_submissions.items() | list | sort(attribute='1.name') %}
+                    {% for user_id, data in sorted_part2 %}
+                    <tr>
+                        <td class="name-col">
+                            <strong>{{ data.name }}</strong>
+                        </td>
+                        {% for i in range(1, 11) %}
+                        {% set ch_key = 'ch' + '%02d' % i %}
+                        <td class="ch-col">
+                            {% if data.submissions.get(ch_key, {}).get('completed', False) %}
+                            <a href="{{ data.submissions.get(ch_key, {}).get('url', '#') }}" 
+                               target="_blank" 
+                               class="chapter-box completed">
+                                ✓
+                            </a>
+                            {% else %}
+                            <div class="chapter-box pending"></div>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="total-col">
+                            <span class="count">{{ data.total_completed }}/10</span>
+                            <div class="bar">
+                                <div class="fill" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<div class="chart-section">
+    <h2>📈 진행도 차트</h2>
+    <div id="chart-container">
+        <canvas id="progressChart"></canvas>
+    </div>
+</div>
+
+</div>
+
+<style>
+.dashboard-page {
+    padding: 2rem;
+    background: #f5f5f5;
+}
+
+.header-info {
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.info-card h2 {
+    margin: 0 0 1.5rem 0;
+    color: #667eea;
+    font-size: 1.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #666;
+}
+
+.heatmap-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.heatmap-section h2 {
+    margin: 0 0 1.5rem 0;
+}
+
+.part-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding: 12px 20px;
+    margin: -2rem -2rem 1.5rem -2rem;
+    border-radius: 12px 12px 0 0;
+    color: white;
+}
+
+.part1-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.part2-title {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.heatmap-table-wrapper {
+    overflow-x: auto;
+}
+
+.heatmap-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.heatmap-table th,
+.heatmap-table td {
+    padding: 1rem 0.5rem;
+    text-align: center;
+    border: 1px solid #eee;
+}
+
+.heatmap-table thead {
+    background: #f8f9fa;
+    color: #333;
+    font-weight: bold;
+}
+
+.heatmap-table th {
+    font-size: 0.9rem;
+    padding: 1rem 0.5rem;
+}
+
+.name-col {
+    width: 100px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.heatmap-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.heatmap-table tbody tr:hover {
+    background: #f0f0f0;
+}
+
+.ch-col {
+    width: 50px;
+    padding: 0.8rem 0.4rem;
+}
+
+.chapter-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    border: 2px solid #ddd;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chapter-box.completed {
+    background: #4CAF50;
+    color: white;
+    border-color: #45a049;
+    text-decoration: none;
+}
+
+.chapter-box.completed:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.chapter-box.pending {
+    background: #e8e8e8;
+    color: #ccc;
+    border-color: #d0d0d0;
+}
+
+.total-col {
+    width: 120px;
+    min-width: 120px;
+}
+
+.count {
+    display: block;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.bar {
+    width: 100%;
+    height: 5px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #4CAF50 100%);
+    transition: width 0.3s ease;
+}
+
+.chart-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.chart-section h2 {
+    margin: 0 0 1.5rem 0;
+    color: #333;
+}
+
+#chart-container {
+    position: relative;
+    height: 400px;
+}
+
+@media (max-width: 768px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .heatmap-table {
+        font-size: 0.9rem;
+    }
+    
+    .chapter-box {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    
+    const part1Stats = {{ part1_chapter_stats | tojson }};
+    const part2Stats = {{ part2_chapter_stats | tojson }};
+    
+    const part1Count = {{ part1_submissions | length }};
+    const part2Count = {{ part2_submissions | length }};
+    const totalCount = part1Count + part2Count;
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(part1Stats),
+            datasets: [
+                {
+                    label: 'PART 1 참여자',
+                    data: Object.values(part1Stats),
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                },
+                {
+                    label: 'PART 2 참여자',
+                    data: Object.values(part2Stats),
+                    backgroundColor: 'rgba(240, 147, 251, 0.8)',
+                    borderColor: 'rgba(240, 147, 251, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    max: totalCount,  // Y축 최대값을 총 인원으로 설정
+                    ticks: {
+                        stepSize: 5
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}
