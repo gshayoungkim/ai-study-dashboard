@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<div class="leaderboard-container">
+    <h2>🏆 전체 리더보드</h2>
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th>순위</th>
+                <th>이름</th>
+                <th>완료</th>
+                <th>진행률</th>
+                <th>배지</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in leaderboard %}
+            <tr>
+                <td class="rank">
+                    {% if item.rank == 1 %}🥇{% elif item.rank == 2 %}🥈{% elif item.rank == 3 %}🥉{% else %}{{ item.rank }}{% endif %}
+                </td>
+                <td class="name">{{ item.name }}</td>
+                <td>{{ item.completed }}/{{ current_progress }}</td>
+                <td>
+                    <div class="bar"><div class="fill" style="width: {{ item.completion_rate }}%"></div></div>
+                    {{ item.completion_rate }}%
+                </td>
+                <td>
+                    {% for badge in item.badges %}
+                    <span>{{ badge.icon }}</span>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

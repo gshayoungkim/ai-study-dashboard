@@ -1,0 +1,591 @@
+{% extends "base.html" %}
+{% block title %}대시보드{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+    <h1>📊 AI 스터디 대시보드</h1>
+    
+    <!-- 통계 카드 섹션 -->
+    <div class="stats-grid">
+        <div class="stat-card gradient-blue">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <div class="stat-value">{{ members_count }}</div>
+                <div class="stat-label">참여자</div>
+            </div>
+        </div>
+        
+        <div class="stat-card gradient-green">
+            <div class="stat-icon">📚</div>
+            <div class="stat-content">
+                <div class="stat-value">혼공머신+딥러닝</div>
+                <div class="stat-label">스터디 책</div>
+            </div>
+        </div>
+        
+        <div class="stat-card gradient-purple">
+            <div class="stat-icon">🚀</div>
+            <div class="stat-content">
+                <div class="stat-value">{{ part1_avg }}%</div>
+                <div class="stat-label">평균 진행률 PART 1</div>
+            </div>
+        </div>
+        
+        <div class="stat-card gradient-pink">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-content">
+                <div class="stat-value">{{ part2_avg }}%</div>
+                <div class="stat-label">평균 진행률 PART 2</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 차트 섹션 -->
+    <div class="charts-grid">
+        <!-- 챕터별 완료 현황 -->
+        <div class="chart-card">
+            <h2>📊 챕터별 완료 현황</h2>
+            <canvas id="chapterChart"></canvas>
+        </div>
+        
+        <!-- 과제 제출 상태 비율 -->
+        <div class="chart-card">
+            <h2>✅ 과제 제출 상태 비율</h2>
+            <canvas id="submissionChart"></canvas>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: rgba(102, 126, 234, 0.8)"></span>
+                    PART 1 (Ch{{ part1_current_ch }}까지): {{ part1_submit_rate }}%
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot" style="background: rgba(240, 147, 251, 0.8)"></span>
+                    PART 2 (Ch{{ part2_current_ch }}까지): {{ part2_submit_rate }}%
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TOP 3 섹션 -->
+    <div class="top3-grid">
+        <!-- 스터디 PART 1 TOP 3 -->
+        <div class="top3-card">
+            <h2>🏆 스터디 PART 1 TOP 3</h2>
+            <div class="top3-list">
+                {% for repo_name, data in part1_top_users %}
+                <div class="top3-item">
+                    <span class="rank-badge rank-{{ loop.index }}">
+                        {% if loop.index == 1 %}🥇
+                        {% elif loop.index == 2 %}🥈
+                        {% else %}🥉{% endif %}
+                    </span>
+                    <div class="top3-info">
+                        <div class="top3-name">{{ data.name }}</div>
+                        <div class="top3-score">{{ data.total_completed }}/10 완료</div>
+                    </div>
+                    <div class="top3-progress">
+                        <div class="progress-bar" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- 스터디 PART 2 TOP 3 -->
+        <div class="top3-card">
+            <h2>🏆 스터디 PART 2 TOP 3</h2>
+            <div class="top3-list">
+                {% for repo_name, data in part2_top_users %}
+                <div class="top3-item">
+                    <span class="rank-badge rank-{{ loop.index }}">
+                        {% if loop.index == 1 %}🥇
+                        {% elif loop.index == 2 %}🥈
+                        {% else %}🥉{% endif %}
+                    </span>
+                    <div class="top3-info">
+                        <div class="top3-name">{{ data.name }}</div>
+                        <div class="top3-score">{{ data.total_completed }}/10 완료</div>
+                    </div>
+                    <div class="top3-progress">
+                        <div class="progress-bar" style="width: {{ (data.total_completed / 10 * 100) }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 퀴즈 TOP 3 섹션 -->
+    <div class="top3-grid">
+        <!-- 퀴즈 PART 1 TOP 3 -->
+        <div class="top3-card">
+            <h2>🚀 퀴즈 PART 1 TOP 3</h2>
+            <div class="top3-list">
+                {% if part1_quiz_top %}
+                    {% for name, count in part1_quiz_top %}
+                    <div class="top3-item">
+                        <span class="rank-badge rank-{{ loop.index }}">
+                            {% if loop.index == 1 %}🥇
+                            {% elif loop.index == 2 %}🥈
+                            {% else %}🥉{% endif %}
+                        </span>
+                        <div class="top3-info">
+                            <div class="top3-name">{{ name }}</div>
+                            <div class="top3-score">{{ count }}개 완료</div>
+                        </div>
+                        <div class="quiz-count">{{ count }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-message">아직 퀴즈를 푼 사람이 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- 퀴즈 PART 2 TOP 3 -->
+        <div class="top3-card">
+            <h2>🚀 퀴즈 PART 2 TOP 3</h2>
+            <div class="top3-list">
+                {% if part2_quiz_top %}
+                    {% for name, count in part2_quiz_top %}
+                    <div class="top3-item">
+                        <span class="rank-badge rank-{{ loop.index }}">
+                            {% if loop.index == 1 %}🥇
+                            {% elif loop.index == 2 %}🥈
+                            {% else %}🥉{% endif %}
+                        </span>
+                        <div class="top3-info">
+                            <div class="top3-name">{{ name }}</div>
+                            <div class="top3-score">{{ count }}개 완료</div>
+                        </div>
+                        <div class="quiz-count">{{ count }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-message">아직 퀴즈를 푼 사람이 없습니다.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+  
+    <!-- 최근 논문 섹션 -->
+    <div class="recent-papers">
+        <div class="section-header">
+            <h2>📄 최근 공유된 논문</h2>
+            <a href="/papers" class="view-all">전체 보기 →</a>
+        </div>
+        <div class="papers-preview">
+            {% if recent_papers %}
+                {% for paper in recent_papers %}
+                <div class="paper-preview-card">
+                    <div class="paper-preview-title">{{ paper.title }}</div>
+                    <div class="paper-preview-author">📝 {{ paper.author }}</div>
+                    {% if paper.link %}
+                    <a href="{{ paper.link }}" target="_blank" class="paper-preview-link">🔗 논문 보기</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-message">아직 공유된 논문이 없습니다.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-page {
+    padding: 2rem;
+    background: #f5f5f5;
+    min-height: 100vh;
+}
+
+.dashboard-page h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+/* 통계 카드 */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.gradient-blue { border-left: 5px solid #4099ff; }
+.gradient-green { border-left: 5px solid #2ed8b6; }
+.gradient-purple { border-left: 5px solid #667eea; }
+.gradient-pink { border-left: 5px solid #f093fb; }
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* 차트 섹션 */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.chart-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.chart-card h2 {
+    margin: 0 0 1.5rem 0;
+    color: #667eea;
+}
+
+.chart-card canvas {
+    max-height: 300px;
+}
+
+.chart-legend {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+/* TOP 3 섹션 */
+.top3-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.top3-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.top3-card h2 {
+    margin: 0 0 1.5rem 0;
+    color: #667eea;
+}
+
+.top3-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.top3-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.top3-item:hover {
+    background: #f0f0f0;
+    transform: translateX(5px);
+}
+
+.rank-badge {
+    font-size: 2rem;
+    min-width: 50px;
+    text-align: center;
+}
+
+.top3-info {
+    flex: 1;
+}
+
+.top3-name {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.3rem;
+}
+
+.top3-score {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.top3-progress {
+    flex: 2;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #4CAF50 100%);
+    transition: width 0.5s ease;
+}
+
+.quiz-count {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #667eea;
+    min-width: 50px;
+    text-align: right;
+}
+
+/* 최근 논문 섹션 */
+.recent-papers {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #667eea;
+}
+
+.view-all {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.view-all:hover {
+    color: #764ba2;
+}
+
+.papers-preview {
+    display: grid;
+    gap: 1rem;
+}
+
+.paper-preview-card {
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.paper-preview-title {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.paper-preview-author {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.paper-preview-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.paper-preview-link:hover {
+    text-decoration: underline;
+}
+
+.empty-message {
+    text-align: center;
+    color: #999;
+    padding: 2rem;
+}
+@media (max-width: 768px) {
+    .stats-grid,
+    .charts-grid,
+    .top3-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 챕터별 완료 현황 차트 - PART1과 PART2 분리
+    const chapterCtx = document.getElementById('chapterChart').getContext('2d');
+    
+    const part1Submissions = {{ part1_submissions | tojson }};
+    const part2Submissions = {{ part2_submissions | tojson }};
+    
+    // PART별로 데이터 분리
+    const part1ChapterStats = {};
+    const part2ChapterStats = {};
+    
+    // PART1 챕터별 완료 횟수
+    for (let i = 1; i <= 10; i++) {
+        const chKey = 'ch' + String(i).padStart(2, '0');
+        let count = 0;
+        Object.values(part1Submissions).forEach(data => {
+            if (data.submissions && data.submissions[chKey] && data.submissions[chKey].completed) {
+                count++;
+            }
+        });
+        part1ChapterStats['Ch' + String(i).padStart(2, '0')] = count;
+    }
+    
+    // PART2 챕터별 완료 횟수
+    for (let i = 1; i <= 10; i++) {
+        const chKey = 'ch' + String(i).padStart(2, '0');
+        let count = 0;
+        Object.values(part2Submissions).forEach(data => {
+            if (data.submissions && data.submissions[chKey] && data.submissions[chKey].completed) {
+                count++;
+            }
+        });
+        part2ChapterStats['Ch' + String(i).padStart(2, '0')] = count;
+    }
+    
+    new Chart(chapterCtx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(part1ChapterStats),
+            datasets: [
+                {
+                    label: 'PART 1',
+                    data: Object.values(part1ChapterStats),
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                },
+                {
+                    label: 'PART 2',
+                    data: Object.values(part2ChapterStats),
+                    backgroundColor: 'rgba(240, 147, 251, 0.8)',
+                    borderColor: 'rgba(240, 147, 251, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    max: {{ members_count }},
+                    ticks: {
+                        stepSize: 5
+                    }
+                }
+            }
+        }
+    });
+    
+    // 과제 제출 상태 비율 도넛 차트
+    const submissionCtx = document.getElementById('submissionChart').getContext('2d');
+    
+    new Chart(submissionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['PART 1 제출', 'PART 1 미제출', 'PART 2 제출', 'PART 2 미제출'],
+            datasets: [{
+                data: [
+                    {{ part1_submit_rate }},
+                    {{ part1_not_submit_rate }},
+                    {{ part2_submit_rate }},
+                    {{ part2_not_submit_rate }}
+                ],
+                backgroundColor: [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(224, 224, 224, 0.5)',
+                    'rgba(240, 147, 251, 0.8)',
+                    'rgba(224, 224, 224, 0.5)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

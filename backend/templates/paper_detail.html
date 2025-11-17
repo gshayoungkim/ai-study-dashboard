@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}논문 상세{% endblock %}
+{% block content %}
+<div class="paper-detail-page">
+    <div class="back-button">
+        <a href="/papers">← 목록으로</a>
+    </div>
+    
+    <div id="paper-detail" class="paper-detail">
+        <!-- JavaScript로 동적 생성 -->
+    </div>
+    
+    <div class="comments-section">
+        <h2>💬 댓글 (<span id="comment-count">0</span>)</h2>
+        
+        <!-- 댓글 작성 폼 -->
+        <div class="comment-form">
+            <input type="text" id="comment-author" placeholder="이름" required>
+            <textarea id="comment-content" placeholder="댓글을 입력하세요..." rows="3" required></textarea>
+            <button onclick="submitComment()" class="btn-submit">댓글 작성</button>
+        </div>
+        
+        <!-- 댓글 목록 -->
+        <div id="comments-list" class="comments-list">
+            <!-- JavaScript로 동적 생성 -->
+        </div>
+    </div>
+</div>
+
+<style>
+.paper-detail-page {
+    padding: 2rem;
+    background: #f5f5f5;
+    min-height: 100vh;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.back-button {
+    margin-bottom: 1rem;
+}
+
+.back-button a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.back-button a:hover {
+    text-decoration: underline;
+}
+
+.paper-detail {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.paper-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.paper-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.paper-content {
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 1.5rem;
+    white-space: pre-wrap;
+}
+
+.paper-link {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.paper-link:hover {
+    background: #5568d3;
+}
+
+.comments-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.comments-section h2 {
+    color: #667eea;
+    margin-bottom: 1.5rem;
+}
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.comment-form input,
+.comment-form textarea {
+    padding: 0.8rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.comment-form input:focus,
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn-submit {
+    padding: 0.8rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+.btn-submit:hover {
+    background: #5568d3;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.comment-item {
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #333;
+}
+
+.comment-date {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.comment-content {
+    color: #666;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.empty-comments {
+    text-align: center;
+    color: #999;
+    padding: 2rem;
+}
+</style>
+
+<script>
+const paperId = {{ paper_id }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadPaper();
+    loadComments();
+});
+
+function loadPaper() {
+    fetch(`/api/papers/${paperId}`)
+        .then(res => res.json())
+        .then(paper => {
+            const detailEl = document.getElementById('paper-detail');
+            detailEl.innerHTML = `
+                <h1 class="paper-title">${escapeHtml(paper.title)}</h1>
+                <div class="paper-meta">
+                    <span>📝 ${escapeHtml(paper.author || '익명')}</span>
+                    <span>📅 ${formatDate(paper.created_at)}</span>
+                </div>
+                ${paper.content ? `<div class="paper-content">${escapeHtml(paper.content)}</div>` : ''}
+                ${paper.link ? `<a href="${escapeHtml(paper.link)}" target="_blank" class="paper-link">🔗 논문 원문 보기</a>` : ''}
+            `;
+        })
+        .catch(err => console.error('[ERROR] 논문 로드 실패:', err));
+}
+
+function loadComments() {
+    fetch(`/api/papers/${paperId}/comments`)
+        .then(res => res.json())
+        .then(comments => {
+            const listEl = document.getElementById('comments-list');
+            const countEl = document.getElementById('comment-count');
+            
+            countEl.textContent = comments.length;
+            
+            if (comments.length === 0) {
+                listEl.innerHTML = '<div class="empty-comments">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</div>';
+                return;
+            }
+            
+            listEl.innerHTML = comments.map(comment => `
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <span class="comment-author">${escapeHtml(comment.author)}</span>
+                        <span class="comment-date">${formatDate(comment.created_at)}</span>
+                    </div>
+                    <div class="comment-content">${escapeHtml(comment.content)}</div>
+                </div>
+            `).join('');
+        })
+        .catch(err => console.error('[ERROR] 댓글 로드 실패:', err));
+}
+
+function submitComment() {
+    const author = document.getElementById('comment-author').value;
+    const content = document.getElementById('comment-content').value;
+    
+    if (!author || !content) {
+        alert('이름과 댓글 내용을 입력해주세요!');
+        return;
+    }
+    
+    fetch(`/api/papers/${paperId}/comments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ author, content })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('comment-author').value = '';
+            document.getElementById('comment-content').value = '';
+            loadComments();
+        } else {
+            alert('오류: ' + data.error);
+        }
+    })
+    .catch(err => {
+        console.error('[ERROR] 댓글 작성 실패:', err);
+        alert('댓글 작성에 실패했습니다.');
+    });
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}
