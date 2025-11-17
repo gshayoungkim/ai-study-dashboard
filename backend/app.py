@@ -177,7 +177,7 @@ REPO_NAME_MAPPING = {
     "youlim-hong": "홍유림",
     "heejoon-kang": "강희준",
     "chanho-ma": "마찬호",
-    "jooyoung-roh": "노주영",
+    "juyoung-noh": "노주영",
     "sulim-lee": "이수림",
     "yoonjung-koo": "구윤정",
     "serim-lee": "이세림",
