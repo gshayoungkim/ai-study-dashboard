@@ -8,6 +8,3 @@ build/
 .venv
 venv/
 quiz_results.json
-portfolio_pdf.html
-portfolio_list.html
-portfolio_detail.html
