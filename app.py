@@ -203,6 +203,10 @@ REPO_NAME_MAPPING = {
     "hyoeun-ji" : "지효은",
     "seonmin-lee" : "이선민",
     "heeseung-han" : "한희승",
+    "yejin-moon" : "문예진",
+    "subin-han" : "한수빈",
+    "subin-shin" : "신수빈",
+    "seungmin-lee" : "이승민",
 
 
 }
@@ -243,7 +247,11 @@ PART2_MEMBERS = [
     "serim-lee",
     "hyoeun-ji",
     "seonmin-lee",
-    "heeseung-han"
+    "heeseung-han",
+    "yejin-moon" ,
+    "subin-han" ,
+    "subin-shin" ,
+    "seungmin-lee",
 
 ]
 
