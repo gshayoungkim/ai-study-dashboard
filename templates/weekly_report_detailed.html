@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile.name }} - Portfolio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .back-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .back-button:hover {
+            transform: translateX(-5px);
+            background: #764ba2;
+        }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .profile-name {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        .github-link {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .github-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .radar-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .chapter-detail {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .chapter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .chapter-title-text {
+            font-size: 1.3em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .chapter-status {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .status-completed {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .status-pending {
+            background: #e0e0e0;
+            color: #999;
+        }
+        
+        .section-list {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+        
+        .section-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .section-title-text {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .concept-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .concept-tag {
+            background: #e7f0ff;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+        }
+        
+        .keyword-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .keyword-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            transition: transform 0.3s;
+        }
+        
+        .keyword-item:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/portfolio" class="back-button">← 포트폴리오 목록</a>
+        
+        <!-- 프로필 헤더 -->
+        <div class="profile-header">
+            <h1 class="profile-name">{{ profile.name }}</h1>
+            <div class="profile-stats">
+                <div class="stat-box">
+                    <div class="stat-number">{{ profile.total_chapters }}</div>
+                    <div class="stat-label">완료 챕터</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">{{ profile.completion_rate }}%</div>
+                    <div class="stat-label">진행률</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">{{ profile.quiz_count }}</div>
+                    <div class="stat-label">퀴즈 완료</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">{{ profile.learned_concepts|length }}</div>
+                    <div class="stat-label">학습 개념</div>
+                </div>
+            </div>
+            <a href="{{ profile.github_url }}" target="_blank" class="github-link">
+                🔗 GitHub 레포지토리
+            </a>
+        </div>
+        
+        <!-- 스킬맵 레이더 차트 -->
+        <div class="section">
+            <h2 class="section-title">📊 Skill Map</h2>
+            <div class="radar-container">
+                nvas id="skillRadardar"></canvas>
+            </div>
+        </div>
+        
+        <!-- 학습 키워드 클라우드 -->
+        <div class="section">
+            <h2 class="section-title">🔑 학습 키워드</h2>
+            <div class="keyword-cloud">
+                {% for keyword in profile.learned_keywords[:20] %}
+                <span class="keyword-item">{{ keyword }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- 챕터별 상세 학습 내용 -->
+        <div class="section">
+            <h2 class="section-title">📚 챕터별 학습 내용</h2>
+            {% for chapter in profile.chapters %}
+            <div class="chapter-detail">
+                <div class="chapter-header">
+                    <div>
+                        <div class="chapter-title-text">{{ chapter.title }}</div>
+                        <div style="color: #666; font-size: 0.9em; margin-top: 5px;">
+                            {{ chapter.subtitle }}
+                        </div>
+                    </div>
+                    <div class="chapter-status {% if chapter.completed %}status-completed{% else %}status-pending{% endif %}">
+                        {% if chapter.completed %}✅ 완료{% else %}⏳ 진행 중{% endif %}
+                    </div>
+                </div>
+                
+                {% if chapter.completed %}
+                <div class="section-list">
+                    {% for section in chapter.sections %}
+                    <div class="section-item">
+                        <div class="section-title-text">{{ section.id }} {{ section.title }}</div>
+                        <div class="concept-tags">
+                            {% for concept in section.concepts %}
+                            <span class="concept-tag">{{ concept }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if chapter.url %}
+                <a href="{{ chapter.url }}" target="_blank" style="color: #667eea; text-decoration: none; margin-top: 10px; display: inline-block;">
+                    📄 실습 코드 보기 →
+                </a>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        const ctx = document.getElementById('skillRadar').getContext('2d');
+        const skillData = {{ profile.skill_scores | tojson }};
+        const skillAxes = {{ skill_axes | tojson }};
+        
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: skillAxes,
+                datasets: [{
+                    label: '{{ profile.name }}',
+                    data: skillAxes.map(axis => skillData[axis] || 0),
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(102, 126, 234, 1)'
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
