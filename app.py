@@ -153,17 +153,34 @@ QUIZZES = {
         {
             "id": "ch07-1",
             "title": "Ch07-1 - 인공 신경망",
-            "gemini_link": "https://gemini.google.com/share/07861a505086"
+            "gemini_link": "https://gemini.google.com/share/b8528ac6dbf0"
         },
         {
             "id": "ch07-2",
-            "title": "Ch0-2 - 심층 신경망",
-            "gemini_link": "https://gemini.google.com/share/690bd417b27e"
+            "title": "Ch07-2 - 심층 신경망",
+            "gemini_link": "https://gemini.google.com/share/640cc2d73541"
         },
         {
             "id": "ch07-3",
             "title": "Ch07-3 - 신경망 모델 훈련",
-            "gemini_link": "https://gemini.google.com/share/006b17105893"
+            "gemini_link": "https://gemini.google.com/share/73bdf741009e"
+        }
+    ],
+       "ch08": [
+        {
+            "id": "ch08-1",
+            "title": "Ch08-1 - 합성곱 신경망의 구성 요소",
+            "gemini_link": "https://gemini.google.com/share/2d06aac1361e"
+        },
+        {
+            "id": "ch08-2",
+            "title": "Ch08-2 - 합성곱 신경망을 사용한 이미지 분류",
+            "gemini_link": "https://gemini.google.com/share/e90cd14ae9f6"
+        },
+        {
+            "id": "ch08-3",
+            "title": "Ch08-3 - 합성곱 신경망의 시각화",
+            "gemini_link": "https://gemini.google.com/share/4d37b2e8bab0"
         }
     ]
 }
