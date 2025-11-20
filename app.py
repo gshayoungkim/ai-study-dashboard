@@ -273,8 +273,8 @@ PART2_MEMBERS = [
 STUDY_CONFIG = {
     "org_name": "oracleaistudy",
     "book_name": "혼자 공부하는 머신러닝 딥러닝",
-    "part1_current_chapter": "7",
-    "part2_current_chapter": "1-2",
+    "part1_current_chapter": "8",
+    "part2_current_chapter": "3",
     
 }
 
@@ -875,8 +875,8 @@ def index():
     part2_submissions = {k: v for k, v in submissions.items() if k in PART2_MEMBERS}
     
     # 현재 진행 챕터 (범위 지원)
-    part1_current_str = STUDY_CONFIG.get('part1_current_chapter', '6')
-    part2_current_str = STUDY_CONFIG.get('part2_current_chapter', '2')
+    part1_current_str = STUDY_CONFIG.get('part1_current_chapter', '7')
+    part2_current_str = STUDY_CONFIG.get('part2_current_chapter', '3')
     
     # 챕터 범위를 리스트로 변환하는 함수
     def parse_chapter_range(chapter_str):
