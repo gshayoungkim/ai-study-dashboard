@@ -7,69 +7,123 @@
         <p class="subtitle">열심히 공부하는 스터디원들의 순위를 확인하세요!</p>
     </div>
     
-
-    
-    <div class="podium-section">
-    {% if top_ranks %}
-    <div class="podium">
-        <!-- 2등 -->
-        {% if 2 in top_ranks %}
-        <div class="podium-place second">
-            <div class="medal">🥈</div>
-            {% for player in top_ranks[2] %}
-            <div class="player-name">{{ player.name }}</div>
-            {% endfor %}
-            {% set first_player = top_ranks[2][0] %}
-            <div class="player-level" style="color: {{ first_player.level_color }}">{{ first_player.level }}</div>
-            <div class="player-badges">
-                {% for badge in first_player.badges[:3] %}
-                    <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
-                {% endfor %}
+ <!-- Part 1과 Part 2 포디움 영역 -->
+<div class="dual-podium-container">
+    <!-- Part 1 Members 포디움 -->
+    <div class="podium-section part1">
+        <h2 class="part-title">📘 Part 1 Members</h2>
+        {% set part1_members = ['hayoung-kim', 'minjeong-ko', 'hagyeong-lee', 'yeonseok-kim', 'eunyong-choi', 'sujeung-kim', 'yunjae-gim', 'seongyeong-kim', 'soyeon-park', 'zeho-oh', 'jihoon-jung', 'sieun-lee', 'suhyeon-min', 'sungkyeong-bae'] %}
+        {% set part1_rankings = rankings | selectattr('repo_name', 'in', part1_members) | list | sort(attribute='total_score', reverse=true) %}
+        {% if part1_rankings %}
+        <div class="podium">
+            <!-- 2등 -->
+            {% if part1_rankings | length >= 2 %}
+            <div class="podium-place second">
+                <div class="medal">🥈</div>
+                <div class="player-name">{{ part1_rankings[1].name }}</div>
+                <div class="player-level" style="color: {{ part1_rankings[1].level_color }}">{{ part1_rankings[1].level }}</div>
+                <div class="player-badges">
+                    {% for badge in part1_rankings[1].badges[:3] %}
+                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                    {% endfor %}
+                </div>
+                <div class="player-score">{{ part1_rankings[1].total_score }}점</div>
+                <div class="podium-box">2nd</div>
             </div>
-            <div class="player-score">{{ first_player.total_score }}점</div>
-            <div class="podium-box">2nd</div>
-        </div>
-        {% endif %}
-        
-        <!-- 1등 -->
-        {% if 1 in top_ranks %}
-        <div class="podium-place first">
-            <div class="medal">🥇</div>
-            {% for player in top_ranks[1] %}
-            <div class="player-name">{{ player.name }}</div>
-            {% endfor %}
-            {% set first_player = top_ranks[1][0] %}
-            <div class="player-level" style="color: {{ first_player.level_color }}">{{ first_player.level }}</div>
-            <div class="player-badges">
-                {% for badge in first_player.badges[:3] %}
-                    <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
-                {% endfor %}
+            {% endif %}
+            
+            <!-- 1등 -->
+            {% if part1_rankings | length >= 1 %}
+            <div class="podium-place first">
+                <div class="medal">🥇</div>
+                <div class="player-name">{{ part1_rankings[0].name }}</div>
+                <div class="player-level" style="color: {{ part1_rankings[0].level_color }}">{{ part1_rankings[0].level }}</div>
+                <div class="player-badges">
+                    {% for badge in part1_rankings[0].badges[:3] %}
+                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                    {% endfor %}
+                </div>
+                <div class="player-score">{{ part1_rankings[0].total_score }}점</div>
+                <div class="podium-box champion">1st</div>
             </div>
-            <div class="player-score">{{ first_player.total_score }}점</div>
-            <div class="podium-box champion">1st</div>
-        </div>
-        {% endif %}
-        
-        <!-- 3등 -->
-        {% if 3 in top_ranks %}
-        <div class="podium-place third">
-            <div class="medal">🥉</div>
-            {% for player in top_ranks[3] %}
-            <div class="player-name">{{ player.name }}</div>
-            {% endfor %}
-            {% set first_player = top_ranks[3][0] %}
-            <div class="player-level" style="color: {{ first_player.level_color }}">{{ first_player.level }}</div>
-            <div class="player-badges">
-                {% for badge in first_player.badges[:3] %}
-                    <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
-                {% endfor %}
+            {% endif %}
+            
+            <!-- 3등 -->
+            {% if part1_rankings | length >= 3 %}
+            <div class="podium-place third">
+                <div class="medal">🥉</div>
+                <div class="player-name">{{ part1_rankings[2].name }}</div>
+                <div class="player-level" style="color: {{ part1_rankings[2].level_color }}">{{ part1_rankings[2].level }}</div>
+                <div class="player-badges">
+                    {% for badge in part1_rankings[2].badges[:3] %}
+                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                    {% endfor %}
+                </div>
+                <div class="player-score">{{ part1_rankings[2].total_score }}점</div>
+                <div class="podium-box">3rd</div>
             </div>
-            <div class="player-score">{{ first_player.total_score }}점</div>
-            <div class="podium-box">3rd</div>
+            {% endif %}
         </div>
         {% endif %}
     </div>
-    {% endif %}
+
+    <!-- Part 2 Members 포디움 -->
+    <div class="podium-section part2">
+        <h2 class="part-title">📗 Part 2 Members</h2>
+        {% set part2_members = ['yeji-kim', 'jiwoo-yoon', 'bonwook-gu', 'sungmin-hwang', 'soyeon-lee', 'sooneun-bae', 'dayeon-kang', 'hyein-lee', 'jooyoung-lee', 'youlim-hong', 'heejoon-kang', 'chanho-ma', 'juyoung-noh', 'sulim-lee', 'yoonjung-koo', 'hyoeun-ji', 'seonmin-lee', 'heeseung-han', 'yejin-moon', 'subin-han', 'subin-shin', 'seungmin-lee'] %}
+        {% set part2_rankings = rankings | selectattr('repo_name', 'in', part2_members) | list | sort(attribute='total_score', reverse=true) %}
+        {% if part2_rankings %}
+        <div class="podium">
+            <!-- 2등 -->
+            {% if part2_rankings | length >= 2 %}
+            <div class="podium-place second">
+                <div class="medal">🥈</div>
+                <div class="player-name">{{ part2_rankings[1].name }}</div>
+                <div class="player-level" style="color: {{ part2_rankings[1].level_color }}">{{ part2_rankings[1].level }}</div>
+                <div class="player-badges">
+                    {% for badge in part2_rankings[1].badges[:3] %}
+                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                    {% endfor %}
+                </div>
+                <div class="player-score">{{ part2_rankings[1].total_score }}점</div>
+                <div class="podium-box">2nd</div>
+            </div>
+            {% endif %}
+            
+            <!-- 1등 -->
+            {% if part2_rankings | length >= 1 %}
+            <div class="podium-place first">
+                <div class="medal">🥇</div>
+                <div class="player-name">{{ part2_rankings[0].name }}</div>
+                <div class="player-level" style="color: {{ part2_rankings[0].level_color }}">{{ part2_rankings[0].level }}</div>
+                <div class="player-badges">
+                    {% for badge in part2_rankings[0].badges[:3] %}
+                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                    {% endfor %}
+                </div>
+                <div class="player-score">{{ part2_rankings[0].total_score }}점</div>
+                <div class="podium-box champion">1st</div>
+            </div>
+            {% endif %}
+            
+            <!-- 3등 -->
+            {% if part2_rankings | length >= 3 %}
+            <div class="podium-place third">
+                <div class="medal">🥉</div>
+                <div class="player-name">{{ part2_rankings[2].name }}</div>
+                <div class="player-level" style="color: {{ part2_rankings[2].level_color }}">{{ part2_rankings[2].level }}</div>
+                <div class="player-badges">
+                    {% for badge in part2_rankings[2].badges[:3] %}
+                        <span class="badge-mini" title="{{ badge.name }}">{{ badge.icon }}</span>
+                    {% endfor %}
+                </div>
+                <div class="player-score">{{ part2_rankings[2].total_score }}점</div>
+                <div class="podium-box">3rd</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
     
     <!-- 전체 랭킹 테이블 -->
@@ -138,6 +192,7 @@
             </table>
         </div>
     </div>
+
 
 <div class="badge-level-section">
   <!-- 왼쪽: 뱃지 -->
@@ -210,6 +265,7 @@
   </div>
 </div>
 
+
     <!-- 점수 계산 설명 -->
     <div class="score-info">
         <h3>📝 점수 계산 방식</h3>
@@ -229,6 +285,7 @@
         </div>
     </div>
 </div>
+
 
 <style>
 .ranking-page {
@@ -251,6 +308,44 @@
 .subtitle {
     color: #666;
     font-size: 1.1rem;
+}
+
+/* Part 1과 Part 2 듀얼 포디움 컨테이너 */
+.dual-podium-container {
+    display: flex;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto 3rem;
+    justify-content: center;
+}
+
+/* 포디움 스타일 */
+.podium-section {
+    flex: 1;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.part-title {
+    text-align: center;
+    color: #667eea;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+}
+
+@media (max-width: 1200px) {
+    .dual-podium-container {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .podium-section {
+        max-width: 600px;
+        margin: 0 auto;
+    }
 }
 
 /* 뱃지 설명 섹션 */
@@ -311,32 +406,40 @@
 .badge-bg3 { background: #f4f8f5; }
 .badge-bg4 { background: #fff4ed; }
 .badge-bg5 { background: #f4faff; }
-@media (max-width: 900px) {
-  .badge-level-section { flex-direction: column; padding: 1.2rem 2vw; }
-  .badge-level-col { margin-bottom: 1.5rem; }
-}
+
 /* 포디움 스타일 */
 .podium-section {
-    max-width: 900px;
-    margin: 0 auto 3rem;
+    flex: 1;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.part-title {
+    text-align: center;
+    color: #667eea;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
 }
 
 .podium {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    gap: 1rem;
+    gap: 0.8rem;
 }
 
 .podium-place {
     flex: 1;
-    max-width: 250px;
+    max-width: 180px;
     text-align: center;
     position: relative;
 }
 
 .medal {
-    font-size: 4rem;
+    font-size: 3rem;
     margin-bottom: 0.5rem;
     animation: bounce 2s infinite;
 }
@@ -348,47 +451,47 @@
 }
 
 .player-name {
-    font-size: 1.1rem;  /* 동점자 여러명일 경우 작게 */
+    font-size: 0.95rem;
     font-weight: bold;
     color: #333;
     margin-bottom: 0.2rem;
 }
 
 .player-level {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: bold;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
 }
 
 .player-badges {
     display: flex;
     justify-content: center;
-    gap: 0.3rem;
-    margin-bottom: 0.5rem;
+    gap: 0.2rem;
+    margin-bottom: 0.4rem;
 }
 
 .badge-mini {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 
 .player-score {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
     color: #667eea;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
 }
 
 .podium-box {
-    padding: 2rem 1rem;
+    padding: 1.5rem 0.8rem;
     background: #e0e0e0;
     border-radius: 8px 8px 0 0;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
     color: white;
 }
 
 .first .podium-box {
-    height: 200px;
+    height: 160px;
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
     display: flex;
     align-items: center;
@@ -397,32 +500,33 @@
 }
 
 .second .podium-box {
-    height: 150px;
+    height: 120px;
     background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 1rem;
+    padding-bottom: 0.8rem;
 }
 
 .third .podium-box {
-    height: 120px;
+    height: 100px;
     background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 1rem;
+    padding-bottom: 0.8rem;
 }
 
 /* 랭킹 테이블 */
 .ranking-table-section {
-    max-width: 1200px;
+    max-width: 1400px;  /* 기존 1200px에서 1400px로 증가 */
     margin: 0 auto 2rem;
     background: white;
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
+
 
 .ranking-table-section h2 {
     color: #667eea;
@@ -433,14 +537,31 @@
     overflow-x: auto;
 }
 
+/* 테이블 기본 스타일 수정 */
 .ranking-table {
     width: 100%;
     border-collapse: collapse;
+    /* table-layout: fixed; 제거 - 자동 너비 조정 허용 */
 }
+
+/* 테이블 전체에 일관된 높이 적용 */
+.ranking-table tbody tr {
+    height: 80px;  /* 행 전체 높이 고정 */
+}
+
+.ranking-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    height: 80px;  /* td 높이도 동일하게 */
+}
+
 
 .ranking-table thead {
     background: #f8f9fa;
 }
+
+
 
 .ranking-table th {
     padding: 1rem;
@@ -448,15 +569,13 @@
     font-weight: bold;
     color: #333;
     border-bottom: 2px solid #e0e0e0;
-}
-
-.ranking-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    white-space: nowrap;  /* 헤더 텍스트 줄바꿈 방지 */
 }
 
 .rank-row {
     transition: all 0.3s;
+    /* height: 60px; 제거 */
 }
 
 .rank-row:hover {
@@ -467,9 +586,12 @@
     background: linear-gradient(90deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
 }
 
+/* 순위 셀 중앙 정렬 */
 .rank-cell {
     text-align: center;
     font-size: 1.5rem;
+    vertical-align: middle;
+    width: 80px;  /* 추가: 순위 컬럼 너비 고정 */
 }
 
 .rank-icon {
@@ -482,20 +604,26 @@
     color: #666;
 }
 
+/* 이름 셀 정렬 */
 .name-cell {
     font-size: 1.1rem;
+    vertical-align: middle;
+    width: 120px;  /* 추가: 이름 컬럼 너비 고정 */
 }
 
 .level-cell {
     font-size: 0.9rem;
     font-weight: bold;
+    vertical-align: middle;
+    width: 120px;  /* 추가: 레벨 컬럼 너비 고정 */
 }
 
 .score-cell {
     font-weight: bold;
     color: #667eea;
+    vertical-align: middle;
+    width: 100px;  /* 추가: 총점 컬럼 너비 고정 */
 }
-
 .total-score {
     font-size: 1.2rem;
 }
@@ -514,6 +642,32 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    align-items: center;
+    align-content: center;  /* 추가: 여러 줄일 때 중앙 정렬 */
+    height: 100%;  /* 추가: 부모 td 높이에 맞춤 */
+    padding: 0;  /* td의 패딩이 있으므로 여기선 제거 */
+}
+/* 뱃지가 있는 td의 패딩 조정 */
+td.badges-cell {
+    padding: 0.5rem 1rem;  /* 상하 패딩 줄임 */
+}
+.badge-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.7rem;  /* 패딩 약간 증가 */
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    /* height 고정 제거 */
+}
+
+/* 뱃지가 없을 때도 셀 높이 유지 */
+.rank-row td {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;  /* 추가: 모든 셀 수직 중앙 정렬 */
 }
 
 .badge-item {
@@ -580,11 +734,29 @@
     color: #666;
 }
 
-@media (max-width: 768px) {
-    .badge-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+@media (max-width: 1200px) {
+    .dual-podium-container {
+        flex-direction: column;
+        gap: 1.5rem;
     }
     
+    .podium-section {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 900px) {
+  .badge-level-section { 
+      flex-direction: column; 
+      padding: 1.2rem 2vw; 
+  }
+  .badge-level-col { 
+      margin-bottom: 1.5rem; 
+  }
+}
+
+@media (max-width: 768px) {
     .podium {
         flex-direction: column;
         align-items: center;
