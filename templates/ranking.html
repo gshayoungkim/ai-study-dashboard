@@ -70,7 +70,7 @@
     <!-- Part 2 Members 포디움 -->
     <div class="podium-section part2">
         <h2 class="part-title">📗 Part 2 Members</h2>
-        {% set part2_members = ['yeji-kim', 'jiwoo-yoon', 'bonwook-gu', 'sungmin-hwang', 'soyeon-lee', 'sooneun-bae', 'dayeon-kang', 'hyein-lee', 'jooyoung-lee', 'youlim-hong', 'heejoon-kang', 'chanho-ma', 'juyoung-noh', 'sulim-lee', 'yoonjung-koo', 'hyoeun-ji', 'seonmin-lee', 'heeseung-han', 'yejin-moon', 'subin-han', 'subin-shin', 'seungmin-lee'] %}
+        {% set part2_members = ['yeji-kim', 'jiwoo-yun', 'bonwook-gu', 'sungmin-hwang', 'soyeon-lee', 'sooneun-bae', 'dayeon-kang', 'hyein-lee', 'jooyoung-lee', 'youlim-hong', 'heejoon-kang', 'chanho-ma', 'juyoung-noh', 'sulim-lee', 'yoonjung-koo', 'hyoeun-ji', 'seonmin-lee', 'heeseung-han', 'yejin-moon', 'subin-han', 'subin-shin', 'seungmin-lee'] %}
         {% set part2_rankings = rankings | selectattr('repo_name', 'in', part2_members) | list | sort(attribute='total_score', reverse=true) %}
         {% if part2_rankings %}
         <div class="podium">

@@ -202,7 +202,7 @@ REPO_NAME_MAPPING = {
     "sieun-lee": "이시은",
     "suhyeon-min": "민수현",
     "sungkyeong-bae": "배성경",
-    "jiwoo-yoon": "윤지우",
+    "jiwoo-yun": "윤지우",
     "bonwook-gu": "구본욱",
     "sungmin-hwang": "황성민",
     "soyeon-lee": "이소연",
@@ -246,7 +246,7 @@ PART1_MEMBERS = [
 
 PART2_MEMBERS = [
     "yeji-kim",
-    "jiwoo-yoon",
+    "jiwoo-yun",
     "bonwook-gu",
     "sungmin-hwang",
     "soyeon-lee",
@@ -849,17 +849,17 @@ def generate_detailed_weekly_report(repo_name, week_number, chapters):
 
 
 def get_user_projects(user_name):
-    """특정 사용자의 프로젝트 목록 가져오기"""
+    """특정 사용자의 프로젝트 목록 가져오기 (PIN 제외)"""
     if not supabase:
         return []
     
     try:
-        response = supabase.table('portfolio_projects').select('*').eq('user_name', user_name).order('created_at', desc=True).execute()
+        # PIN 필드 제외
+        response = supabase.table('portfolio_projects').select('id, user_name, title, description, status, start_date, end_date, notion_url, github_url, demo_url, tech_stack, tags, created_at').eq('user_name', user_name).order('created_at', desc=True).execute()
         return response.data if response.data else []
     except Exception as e:
         print(f"[ERROR] 프로젝트 조회 실패: {e}")
         return []
-
 # =========================
 # 라우트 정의
 # =========================
@@ -1595,7 +1595,7 @@ def get_projects_api(repo_name):
 
 @app.route('/api/projects/<repo_name>', methods=['POST'])
 def add_project_api(repo_name):
-    """프로젝트 추가 API"""
+    """프로젝트 추가 API (PIN 포함)"""
     if not supabase:
         return jsonify({'error': 'Supabase 연결 실패'}), 500
     
@@ -1607,10 +1607,20 @@ def add_project_api(repo_name):
     user_name = submissions[repo_name]['name']
     data = request.json
     
+    # PIN 필수 검증
+    pin = data.get('pin', '').strip()
+    if not pin:
+        return jsonify({'error': 'PIN은 필수입니다'}), 400
+    
+    # PIN 형식 검증 (4자리 숫자)
+    if not (len(pin) == 4 and pin.isdigit()):
+        return jsonify({'error': 'PIN은 4자리 숫자여야 합니다'}), 400
+    
     project_data = {
         'user_name': user_name,
         'title': data.get('title'),
         'description': data.get('description'),
+        'pin': pin,  # ✅ PIN 추가
         'notion_url': data.get('notion_url'),
         'github_url': data.get('github_url'),
         'demo_url': data.get('demo_url'),
@@ -1630,45 +1640,111 @@ def add_project_api(repo_name):
 
 @app.route('/api/projects/<repo_name>/<project_id>', methods=['PUT'])
 def update_project_api(repo_name, project_id):
-    """프로젝트 수정 API"""
+    """프로젝트 수정 API (PIN 검증 포함)"""
     if not supabase:
         return jsonify({'error': 'Supabase 연결 실패'}), 500
     
     data = request.json
     
-    update_data = {}
-    if 'status' in data:
-        update_data['status'] = data['status']
-    if 'notion_url' in data:
-        update_data['notion_url'] = data['notion_url']
-    if 'github_url' in data:
-        update_data['github_url'] = data['github_url']
-    if 'demo_url' in data:
-        update_data['demo_url'] = data['demo_url']
-    if 'end_date' in data:
-        update_data['end_date'] = data['end_date']
+    # PIN 검증
+    provided_pin = data.get('pin', '').strip()
+    if not provided_pin:
+        return jsonify({'error': 'PIN을 입력해주세요'}), 400
     
     try:
-        # ✅ 여기 수정: projects → portfolio_projects
+        # 기존 프로젝트 조회
+        existing = supabase.table('portfolio_projects').select('pin').eq('id', project_id).execute()
+        
+        if not existing.data:
+            return jsonify({'error': '프로젝트를 찾을 수 없습니다'}), 404
+        
+        # PIN 확인
+        if existing.data[0]['pin'] != provided_pin:
+            return jsonify({'error': 'PIN이 일치하지 않습니다'}), 403
+        
+        # 업데이트할 데이터 구성 (PIN 제외)
+        update_data = {}
+        if 'title' in data:
+            update_data['title'] = data['title']
+        if 'description' in data:
+            update_data['description'] = data['description']
+        if 'status' in data:
+            update_data['status'] = data['status']
+        if 'start_date' in data:
+            update_data['start_date'] = data['start_date']
+        if 'end_date' in data:
+            update_data['end_date'] = data['end_date']
+        if 'notion_url' in data:
+            update_data['notion_url'] = data['notion_url']
+        if 'github_url' in data:
+            update_data['github_url'] = data['github_url']
+        if 'demo_url' in data:
+            update_data['demo_url'] = data['demo_url']
+        if 'tech_stack' in data:
+            update_data['tech_stack'] = data['tech_stack']
+        if 'tags' in data:
+            update_data['tags'] = data['tags']
+        
+        # 프로젝트 수정
         response = supabase.table('portfolio_projects').update(update_data).eq('id', project_id).execute()
         return jsonify({'success': True})
+        
     except Exception as e:
         print(f"[ERROR] 프로젝트 수정 실패: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/projects/<repo_name>/<project_id>', methods=['DELETE'])
 def delete_project_api(repo_name, project_id):
-    """프로젝트 삭제 API"""
+    """프로젝트 삭제 API (PIN 검증 포함)"""
     if not supabase:
         return jsonify({'error': 'Supabase 연결 실패'}), 500
     
+    # Query parameter로 전달된 PIN 받기
+    provided_pin = request.args.get('pin', '').strip()
+    
+    if not provided_pin:
+        return jsonify({'error': 'PIN을 입력해주세요'}), 400
+    
     try:
-        # ✅ 여기 수정: projects → portfolio_projects
+        # 기존 프로젝트 조회
+        existing = supabase.table('portfolio_projects').select('pin').eq('id', project_id).execute()
+        
+        if not existing.data:
+            return jsonify({'error': '프로젝트를 찾을 수 없습니다'}), 404
+        
+        # PIN 확인
+        if existing.data[0]['pin'] != provided_pin:
+            return jsonify({'error': 'PIN이 일치하지 않습니다'}), 403
+        
+        # 프로젝트 삭제
         response = supabase.table('portfolio_projects').delete().eq('id', project_id).execute()
         return jsonify({'success': True})
+        
     except Exception as e:
         print(f"[ERROR] 프로젝트 삭제 실패: {e}")
         return jsonify({'error': str(e)}), 500
+@app.route('/api/projects/<repo_name>', methods=['GET'])
+def get_projects_api(repo_name):
+    """특정 사용자의 프로젝트 목록 API (PIN 제외)"""
+    submissions = fetch_all_submissions()
+    
+    if repo_name not in submissions:
+        return jsonify({'error': '사용자를 찾을 수 없습니다'}), 404
+    
+    user_name = submissions[repo_name]['name']
+    
+    try:
+        # PIN 필드 제외하고 조회
+        response = supabase.table('portfolio_projects').select('id, user_name, title, description, status, start_date, end_date, notion_url, github_url, demo_url, tech_stack, tags, created_at').eq('user_name', user_name).order('created_at', desc=True).execute()
+        
+        return jsonify({
+            'user_name': user_name,
+            'projects': response.data
+        })
+    except Exception as e:
+        print(f"[ERROR] 프로젝트 조회 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 
 if __name__ == '__main__':

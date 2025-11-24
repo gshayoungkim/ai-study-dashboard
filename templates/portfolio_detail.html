@@ -433,12 +433,13 @@
             background: #764ba2;
         }
         
+        /* 기존 .project-actions 스타일을 다음으로 교체 */
         .project-actions {
             display: flex;
             gap: 10px;
             margin-top: 15px;
         }
-        
+
         .project-edit-btn,
         .project-delete-btn {
             flex: 1;
@@ -450,21 +451,22 @@
             font-weight: bold;
             transition: all 0.3s;
         }
-        
+
         .project-edit-btn {
-            background: #f0f0f0;
-            color: #666;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
-        
+
         .project-edit-btn:hover {
-            background: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
-        
+
         .project-delete-btn {
             background: #fee;
             color: #e74c3c;
         }
-        
+
         .project-delete-btn:hover {
             background: #fcc;
         }
@@ -625,6 +627,136 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
+        .pin-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            animation: fadeIn 0.3s;
+        }
+
+        .pin-modal-content {
+            background: white;
+            margin: 150px auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            animation: slideDown 0.3s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .pin-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+        }
+
+        .pin-modal-header h3 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+
+        .pin-modal-body {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .pin-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 2em;
+            text-align: center;
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            letter-spacing: 10px;
+            font-weight: bold;
+            transition: border-color 0.3s;
+        }
+
+        .pin-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .pin-input.error {
+            border-color: #e74c3c;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .pin-message {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+        }
+
+        .pin-error {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .pin-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pin-cancel-btn,
+        .pin-confirm-btn {
+            flex: 1;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pin-cancel-btn {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .pin-cancel-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .pin-confirm-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .pin-confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .pin-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #856404;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -734,110 +866,137 @@
         </div>
     
     <!-- 프로젝트 추가 모달 -->
-    <div id="projectModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🚀 프로젝트 추가</h2>
-                <button onclick="closeProjectModal()" class="close-btn">&times;</button>
+   <!-- 프로젝트 추가 모달 -->
+<div id="projectModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">🚀 프로젝트 추가</h2>
+            <button onclick="closeProjectModal()" class="close-btn">&times;</button>
+        </div>
+        <form id="projectForm" onsubmit="submitProject(event)">
+            <div class="form-group">
+                <label for="projectPin">🔒 비밀번호 (4자리 숫자) *</label>
+                <input 
+                    type="password" 
+                    id="projectPin" 
+                    required 
+                    maxlength="4" 
+                    pattern="\d{4}"
+                    inputmode="numeric"
+                    placeholder="••••"
+                    style="letter-spacing: 5px; font-size: 1.2em; text-align: center;"
+                >
+                <small style="color: #999;">이 프로젝트 수정/삭제 시 필요합니다</small>
             </div>
-            <form id="projectForm" onsubmit="submitProject(event)">
-                <div class="form-group">
-                    <label for="projectTitle">프로젝트 제목 *</label>
-                    <input type="text" id="projectTitle" required placeholder="예: 당뇨병 예측 프로그램">
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectDescription">프로젝트 설명 *</label>
-                    <textarea id="projectDescription" required rows="4" placeholder="프로젝트의 목적과 주요 기능을 설명하세요"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectStatus">진행 상태</label>
-                    <select id="projectStatus">
-                        <option value="진행중">🔄 진행중</option>
-                        <option value="완료">✅ 완료</option>
-                        <option value="보류">⏸️ 보류</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectStartDate">시작일</label>
-                    <input type="date" id="projectStartDate">
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectEndDate">완료일</label>
-                    <input type="date" id="projectEndDate">
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectNotion">📄 Notion 페이지 링크</label>
-                    <input type="url" id="projectNotion" placeholder="https://notion.so/...">
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectGithub">💻 GitHub 레포지토리</label>
-                    <input type="url" id="projectGithub" placeholder="https://github.com/username/repo">
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectDemo">🌐 데모/배포 링크</label>
-                    <input type="url" id="projectDemo" placeholder="https://your-demo.com">
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectTechStack">기술 스택 (쉼표로 구분)</label>
-                    <input type="text" id="projectTechStack" placeholder="Python, TensorFlow, Flask, scikit-learn">
-                    <small style="color: #999;">예: Python, TensorFlow, Flask</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="projectTags">태그 (쉼표로 구분)</label>
-                    <input type="text" id="projectTags" placeholder="머신러닝, 추천시스템, 협업필터링">
-                    <small style="color: #999;">예: 머신러닝, 딥러닝, NLP</small>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" onclick="closeProjectModal()" class="btn-cancel">취소</button>
-                    <button type="submit" class="btn-submit">추가하기</button>
-                </div>
-            </form>
+            
+            <div class="form-group">
+                <label for="projectTitle">프로젝트 제목 *</label>
+                <input type="text" id="projectTitle" required placeholder="예: 당뇨병 예측 프로그램">
+            </div>
+            
+            <div class="form-group">
+                <label for="projectDescription">프로젝트 설명 *</label>
+                <textarea id="projectDescription" required rows="4" placeholder="프로젝트의 목적과 주요 기능을 설명하세요"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="projectStatus">진행 상태</label>
+                <select id="projectStatus">
+                    <option value="진행중">🔄 진행중</option>
+                    <option value="완료">✅ 완료</option>
+                    <option value="보류">⏸️ 보류</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="projectStartDate">시작일</label>
+                <input type="date" id="projectStartDate">
+            </div>
+            
+            <div class="form-group">
+                <label for="projectEndDate">완료일</label>
+                <input type="date" id="projectEndDate">
+            </div>
+            
+            <div class="form-group">
+                <label for="projectNotion">📄 Notion 페이지 링크</label>
+                <input type="url" id="projectNotion" placeholder="https://notion.so/...">
+            </div>
+            
+            <div class="form-group">
+                <label for="projectGithub">💻 GitHub 레포지토리</label>
+                <input type="url" id="projectGithub" placeholder="https://github.com/username/repo">
+            </div>
+            
+            <div class="form-group">
+                <label for="projectDemo">🌐 데모/배포 링크</label>
+                <input type="url" id="projectDemo" placeholder="https://your-demo.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="projectTechStack">기술 스택 (쉼표로 구분)</label>
+                <input type="text" id="projectTechStack" placeholder="Python, TensorFlow, Flask, scikit-learn">
+                <small style="color: #999;">예: Python, TensorFlow, Flask</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="projectTags">태그 (쉼표로 구분)</label>
+                <input type="text" id="projectTags" placeholder="머신러닝, 추천시스템, 협업필터링">
+                <small style="color: #999;">예: 머신러닝, 딥러닝, NLP</small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" onclick="closeProjectModal()" class="btn-cancel">취소</button>
+                <button type="submit" class="btn-submit">추가하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- PIN 확인 모달 (수정/삭제 시) -->
+<div id="pinVerifyModal" class="pin-modal">
+    <div class="pin-modal-content">
+        <div class="pin-modal-header">
+            <h3>🔒 비밀번호 확인</h3>
+        </div>
+        <div class="pin-modal-body">
+            <p class="pin-message">이 프로젝트의 4자리 PIN을 입력하세요</p>
+            <input 
+                type="password" 
+                id="pinVerifyInput" 
+                class="pin-input" 
+                maxlength="4" 
+                pattern="\d{4}" 
+                placeholder="••••"
+                inputmode="numeric"
+            >
+            <p class="pin-error" id="pinVerifyError">❌ PIN이 일치하지 않습니다</p>
+            <div class="pin-actions">
+                <button type="button" onclick="closePinVerifyModal()" class="pin-cancel-btn">취소</button>
+                <button type="button" onclick="confirmPinVerify()" class="pin-confirm-btn">확인</button>
+            </div>
         </div>
     </div>
+</div>
+
     <script>
-// Chart.js 로딩 대기 및 차트 생성
+// Chart.js 로딩 대기 및 차트 생성// Chart.js 로딩 및 차트 생성 (기존 코드 유지)
 (function() {
-    // Chart.js가 로드될 때까지 대기
     function initChart() {
         if (typeof Chart === 'undefined') {
-            console.error('Chart.js is not loaded. Retrying...');
             setTimeout(initChart, 100);
             return;
         }
         
         const canvas = document.getElementById('skillRadar');
-        
-        if (!canvas) {
-            console.error('Canvas element #skillRadar not found!');
-            return;
-        }
+        if (!canvas) return;
         
         const ctx = canvas.getContext('2d');
+        if (!ctx) return;
         
-        if (!ctx) {
-            console.error('Cannot get 2D context from canvas');
-            return;
-        }
-        
-        // 서버에서 전달받은 데이터
         const skillData = {{ profile.skill_scores | tojson | safe }};
         const skillAxes = {{ skill_axes | tojson | safe }};
         
-        console.log('Creating chart with data:', skillData);
-        console.log('Axes:', skillAxes);
-        
         try {
-            // 레이더 차트 생성
             const radarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
@@ -865,65 +1024,23 @@
                             beginAtZero: true,
                             max: 100,
                             min: 0,
-                            ticks: {
-                                stepSize: 20,
-                                font: {
-                                    size: 12
-                                },
-                                backdropColor: 'transparent'
-                            },
-                            pointLabels: {
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                color: '#667eea'
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            },
-                            angleLines: {
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            }
+                            ticks: { stepSize: 20, font: { size: 12 }, backdropColor: 'transparent' },
+                            pointLabels: { font: { size: 14, weight: 'bold' }, color: '#667eea' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' }
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                color: '#333'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: {
-                                size: 14
-                            },
-                            bodyFont: {
-                                size: 13
-                            },
-                            padding: 12,
-                            cornerRadius: 8
-                        }
+                        legend: { display: true, position: 'top', labels: { font: { size: 14, weight: 'bold' }, color: '#333' } },
+                        tooltip: { backgroundColor: 'rgba(0, 0, 0, 0.8)', titleFont: { size: 14 }, bodyFont: { size: 13 }, padding: 12, cornerRadius: 8 }
                     }
                 }
             });
-            
-            console.log('✓ Chart created successfully!');
-            
         } catch (error) {
-            console.error('✗ Error creating chart:', error);
-            const container = canvas.parentElement;
-            container.innerHTML = '<p style="text-align:center;color:#e74c3c;padding:40px;font-size:1.1em;">⚠️ 차트를 생성할 수 없습니다.<br>페이지를 새로고침해주세요.</p>';
+            console.error('Chart creation error:', error);
         }
     }
     
-    // DOM 로드 완료 후 차트 초기화
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initChart);
     } else {
@@ -931,165 +1048,313 @@
     }
 })();
 
-    // 프로젝트 관련 함수
-    const repoName = '{{ profile.repo_name }}';
-    
-    // 프로젝트 로드
-    function loadProjects() {
-        fetch(`/api/projects/${repoName}`)
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById('projectsContainer');
-                
-                if (!data.projects || data.projects.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <p>🎯 아직 등록된 프로젝트가 없습니다.</p>
-                            <p style="font-size: 0.9em; color: #999; margin-top: 10px;">책과 별개로 진행하는 프로젝트를 추가해보세요!</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                container.innerHTML = data.projects.map(project => `
-                    <div class="project-card">
-                        <div class="project-header">
-                            <div class="project-title-text">${project.title}</div>
-                            <div class="project-status-badge status-${project.status}">${project.status}</div>
-                        </div>
-                        
-                        <div class="project-description-text">${project.description}</div>
-                        
-                        ${project.start_date || project.end_date ? `
-                            <div class="project-dates">
-                                ${project.start_date ? `<div class="project-date-item">📅 시작: ${project.start_date}</div>` : ''}
-                                ${project.end_date ? `<div class="project-date-item">🏁 완료: ${project.end_date}</div>` : ''}
-                            </div>
-                        ` : ''}
-                        
-                        ${project.tech_stack && project.tech_stack.length > 0 ? `
-                            <div class="project-tech-stack">
-                                ${project.tech_stack.map(tech => `<span class="tech-badge">${tech}</span>`).join('')}
-                            </div>
-                        ` : ''}
-                        
-                        ${project.tags && project.tags.length > 0 ? `
-                            <div class="project-tags">
-                                ${project.tags.map(tag => `<span class="tag-badge">#${tag}</span>`).join('')}
-                            </div>
-                        ` : ''}
-                        
-                        <div class="project-links">
-                            ${project.notion_url ? `<a href="${project.notion_url}" target="_blank" class="project-link link-notion">📄 Notion</a>` : ''}
-                            ${project.github_url ? `<a href="${project.github_url}" target="_blank" class="project-link link-github">💻 GitHub</a>` : ''}
-                            ${project.demo_url ? `<a href="${project.demo_url}" target="_blank" class="project-link link-demo">🌐 Demo</a>` : ''}
-                        </div>
-                        
-                        <div class="project-actions">
-                            <button onclick="deleteProject('${project.id}')" class="project-delete-btn">삭제</button>
-                        </div>
+// 프로젝트 관련 변수
+const repoName = '{{ profile.repo_name }}';
+let currentEditingProjectId = null;
+let currentProjectPin = null;
+let pendingAction = null;
+
+// 프로젝트 로드
+function loadProjects() {
+    fetch(`/api/projects/${repoName}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('projectsContainer');
+            
+            if (!data.projects || data.projects.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>🎯 아직 등록된 프로젝트가 없습니다.</p>
+                        <p style="font-size: 0.9em; color: #999; margin-top: 10px;">책과 별개로 진행하는 프로젝트를 추가해보세요!</p>
                     </div>
-                `).join('');
-            })
-            .catch(err => {
-                console.error('프로젝트 로드 실패:', err);
-            });
-    }
-    
-    // 모달 열기/닫기
-    function openProjectModal() {
-        document.getElementById('projectModal').style.display = 'block';
-    }
-    
-    function closeProjectModal() {
-        document.getElementById('projectModal').style.display = 'none';
-        document.getElementById('projectForm').reset();
-    }
-    
-    // 프로젝트 제출
-    function submitProject(event) {
-        event.preventDefault();
-        
-        const techStack = document.getElementById('projectTechStack').value
-            .split(',')
-            .map(tech => tech.trim())
-            .filter(tech => tech);
-        
-        const tags = document.getElementById('projectTags').value
-            .split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag);
-        
-        const projectData = {
-            title: document.getElementById('projectTitle').value,
-            description: document.getElementById('projectDescription').value,
-            status: document.getElementById('projectStatus').value,
-            start_date: document.getElementById('projectStartDate').value || null,
-            end_date: document.getElementById('projectEndDate').value || null,
-            notion_url: document.getElementById('projectNotion').value || null,
-            github_url: document.getElementById('projectGithub').value || null,
-            demo_url: document.getElementById('projectDemo').value || null,
-            tech_stack: techStack,
-            tags: tags
-        };
-        
-        fetch(`/api/projects/${repoName}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(projectData)
+                `;
+                return;
+            }
+            
+            container.innerHTML = data.projects.map(project => `
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-title-text">${project.title}</div>
+                        <div class="project-status-badge status-${project.status}">${project.status}</div>
+                    </div>
+                    
+                    <div class="project-description-text">${project.description}</div>
+                    
+                    ${project.start_date || project.end_date ? `
+                        <div class="project-dates">
+                            ${project.start_date ? `<div class="project-date-item">📅 시작: ${project.start_date}</div>` : ''}
+                            ${project.end_date ? `<div class="project-date-item">🏁 완료: ${project.end_date}</div>` : ''}
+                        </div>
+                    ` : ''}
+                    
+                    ${project.tech_stack && project.tech_stack.length > 0 ? `
+                        <div class="project-tech-stack">
+                            ${project.tech_stack.map(tech => `<span class="tech-badge">${tech}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${project.tags && project.tags.length > 0 ? `
+                        <div class="project-tags">
+                            ${project.tags.map(tag => `<span class="tag-badge">#${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="project-links">
+                        ${project.notion_url ? `<a href="${project.notion_url}" target="_blank" class="project-link link-notion">📄 Notion</a>` : ''}
+                        ${project.github_url ? `<a href="${project.github_url}" target="_blank" class="project-link link-github">💻 GitHub</a>` : ''}
+                        ${project.demo_url ? `<a href="${project.demo_url}" target="_blank" class="project-link link-demo">🌐 Demo</a>` : ''}
+                    </div>
+                    
+                    <div class="project-actions">
+                        <button onclick='requestEdit(${JSON.stringify(project).replace(/'/g, "&#39;")})' class="project-edit-btn">수정</button>
+                        <button onclick="requestDelete('${project.id}')" class="project-delete-btn">삭제</button>
+                    </div>
+                </div>
+            `).join('');
         })
+        .catch(err => console.error('프로젝트 로드 실패:', err));
+}
+
+// 프로젝트 추가 모달 열기
+function openProjectModal() {
+    currentEditingProjectId = null;
+    document.getElementById('modalTitle').textContent = '🚀 프로젝트 추가';
+    document.getElementById('projectModal').style.display = 'block';
+    document.getElementById('projectForm').reset();
+    document.getElementById('projectPin').disabled = false;
+    document.getElementById('projectPin').parentElement.style.display = 'block';
+}
+
+// 프로젝트 모달 닫기
+function closeProjectModal() {
+    document.getElementById('projectModal').style.display = 'none';
+    document.getElementById('projectForm').reset();
+    currentEditingProjectId = null;
+}
+
+// 수정 요청 (PIN 확인 먼저)
+function requestEdit(project) {
+    currentProjectPin = project.pin;
+    pendingAction = { type: 'edit', data: project };
+    openPinVerifyModal();
+}
+
+// 삭제 요청 (PIN 확인 먼저)
+function requestDelete(projectId) {
+    if (!confirm('이 프로젝트를 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    // 프로젝트 정보를 가져와서 PIN 확인
+    fetch(`/api/projects/${repoName}`)
         .then(res => res.json())
         .then(data => {
-            if (data.success) {
-                alert('✅ 프로젝트가 추가되었습니다!');
-                closeProjectModal();
-                loadProjects();
-            } else {
-                alert('❌ 프로젝트 추가 실패: ' + (data.error || '알 수 없는 오류'));
+            const project = data.projects.find(p => p.id === projectId);
+            if (project) {
+                currentProjectPin = project.pin;
+                pendingAction = { type: 'delete', data: projectId };
+                openPinVerifyModal();
             }
-        })
-        .catch(err => {
-            console.error('프로젝트 추가 실패:', err);
-            alert('❌ 프로젝트 추가 중 오류가 발생했습니다.');
         });
+}
+
+// PIN 확인 모달 열기
+function openPinVerifyModal() {
+    const modal = document.getElementById('pinVerifyModal');
+    const input = document.getElementById('pinVerifyInput');
+    const error = document.getElementById('pinVerifyError');
+    
+    input.value = '';
+    input.classList.remove('error');
+    error.style.display = 'none';
+    
+    modal.style.display = 'block';
+    setTimeout(() => input.focus(), 100);
+}
+
+// PIN 확인 모달 닫기
+function closePinVerifyModal() {
+    document.getElementById('pinVerifyModal').style.display = 'none';
+    pendingAction = null;
+    currentProjectPin = null;
+}
+
+// PIN 확인
+function confirmPinVerify() {
+    const input = document.getElementById('pinVerifyInput');
+    const enteredPin = input.value.trim();
+    const error = document.getElementById('pinVerifyError');
+    
+    if (!/^\d{4}$/.test(enteredPin)) {
+        input.classList.add('error');
+        error.textContent = '❌ 4자리 숫자를 입력하세요';
+        error.style.display = 'block';
+        setTimeout(() => input.classList.remove('error'), 500);
+        return;
     }
     
-    // 프로젝트 삭제
-    function deleteProject(projectId) {
-        if (!confirm('이 프로젝트를 삭제하시겠습니까?')) {
-            return;
+    if (enteredPin === currentProjectPin) {
+        closePinVerifyModal();
+        
+        if (pendingAction) {
+            if (pendingAction.type === 'edit') {
+                editProject(pendingAction.data);
+            } else if (pendingAction.type === 'delete') {
+                deleteProjectConfirmed(pendingAction.data);
+            }
         }
-        
-        fetch(`/api/projects/${repoName}/${projectId}`, {
-            method: 'DELETE'
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('✅ 프로젝트가 삭제되었습니다.');
-                loadProjects();
-            } else {
-                alert('❌ 프로젝트 삭제 실패');
-            }
-        })
-        .catch(err => {
-            console.error('프로젝트 삭제 실패:', err);
-            alert('❌ 프로젝트 삭제 중 오류가 발생했습니다.');
-        });
+    } else {
+        input.classList.add('error');
+        error.textContent = '❌ PIN이 일치하지 않습니다';
+        error.style.display = 'block';
+        input.value = '';
+        setTimeout(() => input.classList.remove('error'), 500);
+    }
+}
+
+// 프로젝트 수정
+function editProject(project) {
+    currentEditingProjectId = project.id;
+    currentProjectPin = project.pin;
+    
+    document.getElementById('modalTitle').textContent = '✏️ 프로젝트 수정';
+    document.getElementById('projectPin').value = project.pin;
+    document.getElementById('projectPin').disabled = true;
+    document.getElementById('projectPin').parentElement.style.display = 'none';
+    
+    document.getElementById('projectTitle').value = project.title || '';
+    document.getElementById('projectDescription').value = project.description || '';
+    document.getElementById('projectStatus').value = project.status || '진행중';
+    document.getElementById('projectStartDate').value = project.start_date || '';
+    document.getElementById('projectEndDate').value = project.end_date || '';
+    document.getElementById('projectNotion').value = project.notion_url || '';
+    document.getElementById('projectGithub').value = project.github_url || '';
+    document.getElementById('projectDemo').value = project.demo_url || '';
+    document.getElementById('projectTechStack').value = project.tech_stack ? project.tech_stack.join(', ') : '';
+    document.getElementById('projectTags').value = project.tags ? project.tags.join(', ') : '';
+    
+    document.getElementById('projectModal').style.display = 'block';
+}
+
+// 프로젝트 제출
+function submitProject(event) {
+    event.preventDefault();
+    
+    const pin = document.getElementById('projectPin').value.trim();
+    
+    if (!/^\d{4}$/.test(pin) && !currentEditingProjectId) {
+        alert('❌ PIN은 4자리 숫자여야 합니다.');
+        return;
     }
     
-    // 모달 외부 클릭 시 닫기
-    window.onclick = function(event) {
-        const modal = document.getElementById('projectModal');
-        if (event.target == modal) {
+    const techStack = document.getElementById('projectTechStack').value
+        .split(',').map(tech => tech.trim()).filter(tech => tech);
+    
+    const tags = document.getElementById('projectTags').value
+        .split(',').map(tag => tag.trim()).filter(tag => tag);
+    
+    const projectData = {
+        pin: currentEditingProjectId ? currentProjectPin : pin,
+        title: document.getElementById('projectTitle').value,
+        description: document.getElementById('projectDescription').value,
+        status: document.getElementById('projectStatus').value,
+        start_date: document.getElementById('projectStartDate').value || null,
+        end_date: document.getElementById('projectEndDate').value || null,
+        notion_url: document.getElementById('projectNotion').value || null,
+        github_url: document.getElementById('projectGithub').value || null,
+        demo_url: document.getElementById('projectDemo').value || null,
+        tech_stack: techStack,
+        tags: tags
+    };
+    
+    const isEditMode = currentEditingProjectId !== null;
+    const url = isEditMode 
+        ? `/api/projects/${repoName}/${currentEditingProjectId}`
+        : `/api/projects/${repoName}`;
+    const method = isEditMode ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(isEditMode ? '✅ 프로젝트가 수정되었습니다!' : '✅ 프로젝트가 추가되었습니다!');
             closeProjectModal();
+            loadProjects();
+        } else {
+            alert('❌ 작업 실패: ' + (data.error || '알 수 없는 오류'));
         }
+    })
+    .catch(err => {
+        console.error('작업 실패:', err);
+        alert('❌ 작업 중 오류가 발생했습니다.');
+    });
+}
+
+// 프로젝트 삭제 (PIN 확인 후)
+function deleteProjectConfirmed(projectId) {
+    fetch(`/api/projects/${repoName}/${projectId}`, {
+        method: 'DELETE'
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ 프로젝트가 삭제되었습니다.');
+            loadProjects();
+        } else {
+            alert('❌ 프로젝트 삭제 실패');
+        }
+    })
+    .catch(err => {
+        console.error('프로젝트 삭제 실패:', err);
+        alert('❌ 프로젝트 삭제 중 오류가 발생했습니다.');
+    });
+}
+
+// Enter 키 처리
+document.addEventListener('DOMContentLoaded', function() {
+    // 프로젝트 PIN 입력 (숫자만)
+    const projectPinInput = document.getElementById('projectPin');
+    if (projectPinInput) {
+        projectPinInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^\d]/g, '');
+        });
     }
     
-    // 페이지 로드 시 프로젝트 로드
-    loadProjects();
+    // PIN 확인 입력
+    const pinVerifyInput = document.getElementById('pinVerifyInput');
+    if (pinVerifyInput) {
+        pinVerifyInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^\d]/g, '');
+        });
+        
+        pinVerifyInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                confirmPinVerify();
+            }
+        });
+    }
+});
+
+// 모달 외부 클릭 시 닫기
+window.onclick = function(event) {
+    const projectModal = document.getElementById('projectModal');
+    const pinVerifyModal = document.getElementById('pinVerifyModal');
+    
+    if (event.target == projectModal) {
+        closeProjectModal();
+    }
+    if (event.target == pinVerifyModal) {
+        closePinVerifyModal();
+    }
+}
+
+// 페이지 로드 시 프로젝트 로드
+loadProjects();
+
 
 </script>
 </body>
