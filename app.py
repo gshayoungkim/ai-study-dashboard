@@ -291,8 +291,8 @@ PART2_MEMBERS = [
 STUDY_CONFIG = {
     "org_name": "oracleaistudy",
     "book_name": "혼자 공부하는 머신러닝 딥러닝",
-    "part1_current_chapter": "8",
-    "part2_current_chapter": "3",
+    "part1_current_chapter": "9",
+    "part2_current_chapter": "4",
     
 }
 
