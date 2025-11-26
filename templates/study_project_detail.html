@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로젝트 상세 - AI 스터디</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .nav-buttons {
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .nav-buttons a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .project-header {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .project-title {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 30px;
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .project-meta i {
+            margin-right: 8px;
+            color: #667eea;
+        }
+
+        .project-description {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subsection {
+            margin-bottom: 30px;
+        }
+
+        .subsection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .subsection-header h3 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .participants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .participant-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .participant-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .participant-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .participant-link {
+            color: #667eea;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.95rem;
+        }
+
+        .participant-link:hover {
+            text-decoration: underline;
+        }
+
+        .participant-delete {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .participant-delete:hover {
+            color: #ff6b6b;
+        }
+
+        /* 참관인 스타일 */
+        .observers-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .observer-badge {
+            background: #e7f5ff;
+            color: #1971c2;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .observer-badge:hover {
+            background: #d0ebff;
+            transform: translateY(-2px);
+        }
+
+        .observer-delete {
+            background: none;
+            border: none;
+            color: #5c7cfa;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color 0.3s;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .observer-delete:hover {
+            color: #ff6b6b;
+        }
+
+        .empty-message {
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        /* 회고록 보드 */
+        .retrospective-board {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .retro-column {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            width: 100%;
+        }
+
+        .retro-column-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .retro-column-header-title {
+            flex: 1;
+        }
+
+        /* 카테고리별 헤더 색상 */
+        .retro-column.good .retro-column-header {
+            color: #51cf66;
+            border-color: #51cf66;
+        }
+
+        .retro-column.bad .retro-column-header {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .retro-column.ideas .retro-column-header {
+            color: #ffd43b;
+            border-color: #ffd43b;
+        }
+
+        .retro-column.action .retro-column-header {
+            color: #4dabf7;
+            border-color: #4dabf7;
+        }
+
+        .retro-notes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .sticky-note {
+            background: #fff9c4;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .sticky-note:hover {
+            transform: rotate(1deg) translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .sticky-note.good {
+            background: #A8E6CF;
+        }
+
+        .sticky-note.bad {
+            background: #FFB3BA;
+        }
+
+        .sticky-note.ideas {
+            background: #FFE66D;
+        }
+
+        .sticky-note.action {
+            background: #A2D2FF;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .note-author {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .note-delete {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+
+        .note-delete:hover {
+            color: #ff6b6b;
+        }
+
+        .note-content {
+            color: #333;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        /* 추가 버튼 */
+        .add-note-btn {
+            padding: 8px 30px;
+            background: white;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            color: #999;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .add-note-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            background: #f8f9fa;
+        }
+
+        /* 카테고리별 버튼 호버 색상 */
+        .retro-column.good .add-note-btn:hover {
+            border-color: #51cf66;
+            color: #51cf66;
+        }
+
+        .retro-column.bad .add-note-btn:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .retro-column.ideas .add-note-btn:hover {
+            border-color: #ffa94d;
+            color: #ffa94d;
+        }
+
+        .retro-column.action .add-note-btn:hover {
+            border-color: #4dabf7;
+            color: #4dabf7;
+        }
+
+        /* 버튼 공통 스타일 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* 폼 스타일 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        /* 반응형: 화면이 작으면 2개씩 */
+        @media (max-width: 1200px) {
+            .retro-notes {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 반응형: 모바일에서는 1개씩 */
+        @media (max-width: 768px) {
+            .retro-notes {
+                grid-template-columns: 1fr;
+            }
+            
+            .retro-column-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .add-note-btn {
+                width: 100%;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="nav-buttons">
+            <a href="/study-projects"><i class="fas fa-arrow-left"></i> 프로젝트 목록으로</a>
+        </div>
+
+        <div class="project-header" id="projectHeader">
+            <!-- 프로젝트 정보가 여기에 동적으로 추가됩니다 -->
+        </div>
+
+        <div class="section">
+    <div class="section-title">
+        <i class="fas fa-users"></i>
+        참여자 & 참관인
+        </div>
+        
+        <!-- 참여자 목록 -->
+        <div class="subsection">
+            <div class="subsection-header">
+                <h3>👥 프로젝트 참여자</h3>
+                <button class="btn btn-primary btn-sm" onclick="openParticipantModal()">
+                    <i class="fas fa-user-plus"></i> 참여자 등록
+                </button>
+            </div>
+            <div class="participants-grid" id="participantsGrid">
+                <!-- 참여자 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+
+        <!-- 참관인 목록 -->
+        <div class="subsection">
+            <div class="subsection-header">
+                <h3>👀 참관인</h3>
+                <button class="btn btn-secondary btn-sm" onclick="openObserverModal()">
+                    <i class="fas fa-user-plus"></i> 참관인 추가
+                </button>
+            </div>
+            <div class="observers-list" id="observersList">
+                <!-- 참관인 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+    </div>
+
+       <div class="section">
+            <div class="section-title">
+                <i class="fas fa-clipboard-list"></i>
+                팀 회고록 (GOOD / BAD / IDEAS / ACTION)
+            </div>
+            
+            <div class="retrospective-board">
+                <!-- GOOD 영역 -->
+                <div class="retro-column good">
+                    <div class="retro-column-header">
+                        <div class="retro-column-header-title">✅ GOOD - 잘한 점</div>
+                        <button class="add-note-btn" onclick="openNoteModal('GOOD')">
+                            <i class="fas fa-plus"></i> 추가
+                        </button>
+                    </div>
+                    <div class="retro-notes" id="goodNotes"></div>
+                </div>
+
+                <!-- BAD 영역 -->
+                <div class="retro-column bad">
+                    <div class="retro-column-header">
+                        <div class="retro-column-header-title">❌ BAD - 아쉬운 점</div>
+                        <button class="add-note-btn" onclick="openNoteModal('BAD')">
+                            <i class="fas fa-plus"></i> 추가
+                        </button>
+                    </div>
+                    <div class="retro-notes" id="badNotes"></div>
+                </div>
+
+                <!-- IDEAS 영역 -->
+                <div class="retro-column ideas">
+                    <div class="retro-column-header">
+                        <div class="retro-column-header-title">💡 IDEAS - 개선 아이디어</div>
+                        <button class="add-note-btn" onclick="openNoteModal('IDEAS')">
+                            <i class="fas fa-plus"></i> 추가
+                        </button>
+                    </div>
+                    <div class="retro-notes" id="ideasNotes"></div>
+                </div>
+
+                <!-- ACTION 영역 -->
+                <div class="retro-column action">
+                    <div class="retro-column-header">
+                        <div class="retro-column-header-title">🚀 ACTION - 액션 아이템</div>
+                        <button class="add-note-btn" onclick="openNoteModal('ACTION')">
+                            <i class="fas fa-plus"></i> 추가
+                        </button>
+                    </div>
+                    <div class="retro-notes" id="actionNotes"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+    <div class="modal" id="editProjectModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>프로젝트 수정</h2>
+            </div>
+            <form id="editProjectForm">
+                <div class="form-group">
+                    <label>프로젝트 이름 *</label>
+                    <input type="text" name="title" id="edit_title" required>
+                </div>
+                <div class="form-group">
+                    <label>프로젝트 설명</label>
+                    <textarea name="description" id="edit_description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>데이터셋 이름</label>
+                    <input type="text" name="dataset_name" id="edit_dataset_name" placeholder="예: PIMA Indian Diabetes">
+                </div>
+                <div class="form-group">
+                    <label>데이터셋 URL</label>
+                    <input type="url" name="dataset_url" id="edit_dataset_url" placeholder="https://www.kaggle.com/datasets/...">
+                </div>
+                <div class="form-group">
+                    <label>프로젝트 관련 URL</label>
+                    <input type="url" name="project_url" id="edit_project_url" placeholder="https://github.com/... 또는 Notion URL">
+                </div>
+                <div class="form-group">
+                    <label>시작일</label>
+                    <input type="date" name="start_date" id="edit_start_date">
+                </div>
+                <div class="form-group">
+                    <label>종료일</label>
+                    <input type="date" name="end_date" id="edit_end_date">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">수정하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 회고록 추가 모달 -->
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">회고록 추가</h2>
+            </div>
+            <form id="addNoteForm">
+                <input type="hidden" name="category" id="noteCategory">
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" name="user_name" required list="userNameList2">
+                    <datalist id="userNameList2"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>내용</label>
+                    <textarea name="content" required placeholder="회고 내용을 입력하세요"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeNoteModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">추가하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    
+      <!-- 참여자 등록 모달 -->
+    <div class="modal" id="participantModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>참여자 등록</h2>
+            </div>
+            <form id="addParticipantForm">
+                <div class="form-group">
+                    <label>이름 *</label>
+                    <input type="text" name="user_name" required list="userNameList">
+                    <datalist id="userNameList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>GitHub 노트북 URL *</label>
+                    <input type="url" name="github_notebook_url" required placeholder="https://github.com/username/repo/notebook.ipynb">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeParticipantModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">등록하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 참관인 추가 모달 -->
+    <div class="modal" id="observerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>참관인 추가</h2>
+            </div>
+            <form id="addObserverForm">
+                <div class="form-group">
+                    <label>이름 *</label>
+                    <input type="text" name="observer_name" required list="userNameList3">
+                    <datalist id="userNameList3"></datalist>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeObserverModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">추가하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+  
+
+
+   <script>
+    const projectId = {{ project_id }};
+    let projectData = null;
+
+    // 프로젝트 상세 정보 로드
+    async function loadProject() {
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            projectData = await response.json();
+            
+            console.log('프로젝트 데이터 로드 성공:', projectData);
+
+            // 프로젝트 헤더 렌더링
+            document.getElementById('projectHeader').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <div class="project-title">${projectData.title}</div>
+                        <div class="project-meta">
+                            <span><i class="fas fa-calendar"></i> ${formatDate(projectData.start_date)} ~ ${formatDate(projectData.end_date)}</span>
+                            <span><i class="fas fa-database"></i> ${projectData.dataset_name || '데이터셋 정보 없음'}</span>
+                            ${projectData.dataset_url ? `<a href="${projectData.dataset_url}" target="_blank" style="color: #667eea;"><i class="fas fa-link"></i> 데이터셋</a>` : ''}
+                            ${projectData.project_url ? `<a href="${projectData.project_url}" target="_blank" style="color: #667eea;"><i class="fas fa-external-link-alt"></i> 프로젝트</a>` : ''}
+                        </div>
+                        <div class="project-description">${projectData.description || '설명 없음'}</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="openEditModal()" style="margin-left: 20px;">
+                        <i class="fas fa-edit"></i> 프로젝트 수정
+                    </button>
+                </div>
+            `;
+
+            // 렌더링 함수 호출
+            renderParticipants();
+            renderObservers();
+            renderRetrospectives();
+
+        } catch (error) {
+            console.error('프로젝트 로드 실패:', error);
+            alert('프로젝트 정보를 불러오는데 실패했습니다: ' + error.message);
+        }
+    }
+
+    // 참여자 렌더링 (방어 코드 추가)
+    function renderParticipants() {
+        const grid = document.getElementById('participantsGrid');
+        
+        if (!grid) {
+            console.error('participantsGrid 엘리먼트를 찾을 수 없습니다');
+            return;
+        }
+        
+        // 방어 코드
+        if (!projectData || !projectData.participants) {
+            console.warn('참여자 데이터가 없습니다');
+            grid.innerHTML = '<p class="empty-message">데이터를 불러오는 중...</p>';
+            return;
+        }
+        
+        if (projectData.participants.length === 0) {
+            grid.innerHTML = '<p class="empty-message">아직 참여자가 없습니다.</p>';
+            return;
+        }
+
+        grid.innerHTML = projectData.participants.map(p => `
+            <div class="participant-card">
+                <button class="participant-delete" onclick="deleteParticipant(${p.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="participant-name">${p.user_name}</div>
+                ${p.github_notebook_url ? `
+                    <a href="${p.github_notebook_url}" target="_blank" class="participant-link">
+                        <i class="fab fa-github"></i> Notebook 보기
+                    </a>
+                ` : '<span style="color: #999;">링크 없음</span>'}
+            </div>
+        `).join('');
+    }
+
+    // 참관인 렌더링 (방어 코드 추가)
+    function renderObservers() {
+        const list = document.getElementById('observersList');
+        
+        if (!list) {
+            console.error('observersList 엘리먼트를 찾을 수 없습니다');
+            return;
+        }
+        
+        // 방어 코드
+        if (!projectData || !projectData.observers) {
+            console.warn('참관인 데이터가 없습니다');
+            list.innerHTML = '<p class="empty-message">데이터를 불러오는 중...</p>';
+            return;
+        }
+        
+        if (projectData.observers.length === 0) {
+            list.innerHTML = '<p class="empty-message">아직 참관인이 없습니다.</p>';
+            return;
+        }
+
+        list.innerHTML = projectData.observers.map(o => `
+            <div class="observer-badge">
+                ${o.observer_name}
+                <button class="observer-delete" onclick="deleteObserver(${o.id})">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 회고록 렌더링 (방어 코드 추가)
+    function renderRetrospectives() {
+        const categories = ['GOOD', 'BAD', 'IDEAS', 'ACTION'];
+        
+        // 방어 코드
+        if (!projectData || !projectData.retrospectives) {
+            console.warn('회고록 데이터가 없습니다');
+            categories.forEach(category => {
+                const containerId = category.toLowerCase() + 'Notes';
+                const container = document.getElementById(containerId);
+                if (container) {
+                    container.innerHTML = '<p class="empty-message">데이터를 불러오는 중...</p>';
+                }
+            });
+            return;
+        }
+        
+        categories.forEach(category => {
+            const containerId = category.toLowerCase() + 'Notes';
+            const container = document.getElementById(containerId);
+            
+            if (!container) {
+                console.error(`Container not found: ${containerId}`);
+                return;
+            }
+            
+            const notes = projectData.retrospectives[category] || [];
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p class="empty-message">아직 내용이 없습니다</p>';
+                return;
+            }
+            
+            container.innerHTML = notes.map(note => `
+                <div class="sticky-note ${category.toLowerCase()}">
+                    <div class="note-header">
+                        <span class="note-author">${note.user_name}</span>
+                        <button class="note-delete" onclick="deleteNote(${note.id})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="note-content">${note.content}</div>
+                </div>
+            `).join('');
+        });
+    }
+
+    // 나머지 함수들은 그대로 유지...
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    // 사용자 이름 목록 로드
+    async function loadUserNames() {
+        try {
+            const response = await fetch('/api/users');
+            const users = await response.json();
+            
+            const datalist1 = document.getElementById('userNameList');
+            const datalist2 = document.getElementById('userNameList2');
+            const datalist3 = document.getElementById('userNameList3');
+            
+            users.forEach(user => {
+                if (datalist1) {
+                    const option1 = document.createElement('option');
+                    option1.value = user;
+                    datalist1.appendChild(option1);
+                }
+                
+                if (datalist2) {
+                    const option2 = document.createElement('option');
+                    option2.value = user;
+                    datalist2.appendChild(option2);
+                }
+                
+                if (datalist3) {
+                    const option3 = document.createElement('option');
+                    option3.value = user;
+                    datalist3.appendChild(option3);
+                }
+            });
+        } catch (error) {
+            console.error('사용자 목록 로드 실패:', error);
+        }
+    }
+
+    // 프로젝트 수정 모달
+    function openEditModal() {
+        document.getElementById('edit_title').value = projectData.title || '';
+        document.getElementById('edit_description').value = projectData.description || '';
+        document.getElementById('edit_dataset_name').value = projectData.dataset_name || '';
+        document.getElementById('edit_dataset_url').value = projectData.dataset_url || '';  // ✅ 변경
+        document.getElementById('edit_project_url').value = projectData.project_url || '';  // ✅ 추가
+        document.getElementById('edit_start_date').value = projectData.start_date || '';
+        document.getElementById('edit_end_date').value = projectData.end_date || '';
+        document.getElementById('editProjectModal').classList.add('active');
+    }
+
+    function closeEditModal() {
+        document.getElementById('editProjectModal').classList.remove('active');
+        document.getElementById('editProjectForm').reset();
+    }
+
+    document.getElementById('editProjectForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                alert('프로젝트가 수정되었습니다!');
+                closeEditModal();
+                loadProject();
+            } else {
+                const error = await response.json();
+                alert('프로젝트 수정에 실패했습니다: ' + (error.error || '알 수 없는 오류'));
+            }
+        } catch (error) {
+            console.error('프로젝트 수정 실패:', error);
+            alert('네트워크 오류가 발생했습니다.');
+        }
+    });
+
+    // 참여자 모달
+    function openParticipantModal() {
+        document.getElementById('participantModal').classList.add('active');
+    }
+
+    function closeParticipantModal() {
+        document.getElementById('participantModal').classList.remove('active');
+        document.getElementById('addParticipantForm').reset();
+    }
+
+    document.getElementById('addParticipantForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}/participants`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                alert('참여자가 추가되었습니다!');
+                closeParticipantModal();
+                loadProject();
+            } else {
+                alert('참여자 추가에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('참여자 추가 실패:', error);
+        }
+    });
+
+    async function deleteParticipant(participantId) {
+        if (!confirm('이 참여자를 삭제하시겠습니까?')) return;
+        
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}/participants/${participantId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                loadProject();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('참여자 삭제 실패:', error);
+        }
+    }
+
+    // 참관인 모달
+    function openObserverModal() {
+        document.getElementById('observerModal').classList.add('active');
+    }
+
+    function closeObserverModal() {
+        document.getElementById('observerModal').classList.remove('active');
+        document.getElementById('addObserverForm').reset();
+    }
+
+    document.getElementById('addObserverForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}/observers`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                alert('참관인이 추가되었습니다!');
+                closeObserverModal();
+                loadProject();
+            } else {
+                alert('참관인 추가에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('참관인 추가 실패:', error);
+        }
+    });
+
+    async function deleteObserver(observerId) {
+        if (!confirm('이 참관인을 삭제하시겠습니까?')) return;
+        
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}/observers/${observerId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                loadProject();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('참관인 삭제 실패:', error);
+        }
+    }
+
+    // 회고록 모달
+    function openNoteModal(category) {
+        const categoryNames = {
+            'GOOD': '잘한 점 (GOOD)',
+            'BAD': '아쉬운 점 (BAD)',
+            'IDEAS': '개선 아이디어 (IDEAS)',
+            'ACTION': '액션 아이템 (ACTION)'
+        };
+        
+        document.getElementById('modalTitle').textContent = categoryNames[category];
+        document.getElementById('noteCategory').value = category;
+        document.getElementById('noteModal').classList.add('active');
+    }
+
+    function closeNoteModal() {
+        document.getElementById('noteModal').classList.remove('active');
+        document.getElementById('addNoteForm').reset();
+    }
+
+    document.getElementById('addNoteForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}/retrospectives`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                closeNoteModal();
+                loadProject();
+            } else {
+                alert('회고록 추가에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('회고록 추가 실패:', error);
+        }
+    });
+
+    async function deleteNote(noteId) {
+        if (!confirm('이 회고록을 삭제하시겠습니까?')) return;
+        
+        try {
+            const response = await fetch(`/api/study-projects/${projectId}/retrospectives/${noteId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                loadProject();
+            } else {
+                alert('삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('회고록 삭제 실패:', error);
+        }
+    }
+
+    // 페이지 로드 시 초기화
+    loadProject();
+    loadUserNames();
+</script>
+
+</body>
+</html>

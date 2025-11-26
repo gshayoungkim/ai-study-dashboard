@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% block title %}팀 프로젝트{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+    <!-- 페이지 헤더 -->
+    <div class="header-info">
+        <div class="info-card">
+            <h2>📊 팀 프로젝트 관리</h2>
+            <p style="color: #666; margin-top: 0.5rem;">스터디 그룹의 협업 프로젝트를 관리하고 회고를 공유하세요</p>
+        </div>
+    </div>
+
+    <!-- 프로젝트 목록 헤더 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="color: #333; font-size: 1.3rem; margin: 0;">전체 프로젝트</h2>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            <i class="fas fa-plus"></i> 새 프로젝트 만들기
+        </button>
+    </div>
+
+    <!-- 프로젝트 그리드 -->
+    <div class="projects-grid" id="projectsGrid">
+        <!-- 프로젝트 카드가 여기에 동적으로 추가됩니다 -->
+    </div>
+</div>
+
+<!-- 프로젝트 생성 모달 -->
+<div class="modal" id="createModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>새 프로젝트 만들기</h2>
+        </div>
+        <form id="createForm">
+            <div class="form-group">
+                <label>프로젝트 이름 *</label>
+                <input type="text" name="title" required placeholder="예: PIMA Diabetes 예측 모델">
+            </div>
+            <div class="form-group">
+                <label>프로젝트 설명</label>
+                <textarea name="description" rows="4" placeholder="프로젝트에 대한 간단한 설명을 입력하세요"></textarea>
+            </div>
+            <div class="form-group">
+                <label>데이터셋 이름</label>
+                <input type="text" name="dataset_name" placeholder="예: PIMA Indian Diabetes">
+            </div>
+            <div class="form-group">
+                <label>데이터셋 URL</label>
+                <input type="url" name="dataset_url" placeholder="https://www.kaggle.com/datasets/...">
+            </div>
+            <div class="form-group">
+                <label>프로젝트 관련 URL</label>
+                <input type="url" name="project_url" placeholder="https://github.com/... 또는 Notion URL">
+            </div>
+            <div class="form-group">
+                <label>시작일</label>
+                <input type="date" name="start_date">
+            </div>
+            <div class="form-group">
+                <label>종료일</label>
+                <input type="date" name="end_date">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">취소</button>
+                <button type="submit" class="btn btn-primary">생성하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.dashboard-page {
+    padding: 2rem;
+    background: #f5f5f5;
+}
+
+.header-info {
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.info-card h2 {
+    margin: 0;
+    color: #667eea;
+    font-size: 1.5rem;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.project-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.project-card-title {
+    font-size: 1.3rem;
+    color: #667eea;
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+}
+
+.project-card-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.project-card-meta i {
+    color: #667eea;
+}
+
+.project-card-description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    min-height: 50px;
+}
+
+.project-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.participant-count {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    border: 2px dashed #e0e0e0;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #999;
+}
+
+/* 버튼 */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+.btn-secondary {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-secondary:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* 모달 */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header h2 {
+    color: #667eea;
+    font-size: 1.5rem;
+    margin: 0 0 1.5rem 0;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+async function loadProjects() {
+    try {
+        const response = await fetch('/api/study-projects');
+        const projects = await response.json();
+
+        const grid = document.getElementById('projectsGrid');
+
+        if (projects.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>아직 프로젝트가 없습니다</h3>
+                    <p>새 프로젝트를 만들어 시작해보세요!</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = projects.map(project => `
+            <div class="project-card" onclick="location.href='/study-projects/${project.id}'">
+                <div class="project-card-title">${project.title}</div>
+                <div class="project-card-meta">
+                    <span><i class="fas fa-calendar"></i> ${formatDate(project.start_date)} ~ ${formatDate(project.end_date)}</span>
+                </div>
+                <div class="project-card-description">
+                    ${project.description ? (project.description.length > 100 ? project.description.substring(0, 100) + '...' : project.description) : '설명 없음'}
+                </div>
+                <div class="project-card-footer">
+                    <span class="participant-count">
+                        <i class="fas fa-users"></i> ${project.participant_count || 0}명 참여
+                    </span>
+                    <span style="color: #667eea;"><i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('프로젝트 로드 실패:', error);
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function openCreateModal() {
+    document.getElementById('createModal').classList.add('active');
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').classList.remove('active');
+    document.getElementById('createForm').reset();
+}
+
+document.getElementById('createForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch('/api/study-projects', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert('프로젝트가 생성되었습니다!');
+            closeCreateModal();
+            loadProjects();
+        } else {
+            alert('프로젝트 생성에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('프로젝트 생성 실패:', error);
+    }
+});
+
+loadProjects();
+</script>
+
+{% endblock %}

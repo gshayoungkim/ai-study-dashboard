@@ -1577,21 +1577,7 @@ def skill_comparison():
     })
 
 
-@app.route('/api/projects/<repo_name>', methods=['GET'])
-def get_projects_api(repo_name):
-    """특정 사용자의 프로젝트 목록 API"""
-    submissions = fetch_all_submissions()
-    
-    if repo_name not in submissions:
-        return jsonify({'error': '사용자를 찾을 수 없습니다'}), 404
-    
-    user_name = submissions[repo_name]['name']
-    projects = get_user_projects(user_name)
-    
-    return jsonify({
-        'user_name': user_name,
-        'projects': projects
-    })
+
 
 @app.route('/api/projects/<repo_name>', methods=['POST'])
 def add_project_api(repo_name):
@@ -1744,6 +1730,346 @@ def get_projects_api(repo_name):
     except Exception as e:
         print(f"[ERROR] 프로젝트 조회 실패: {e}")
         return jsonify({'error': str(e)}), 500
+# =============================
+# 🆕 팀 스터디 프로젝트 관련 라우트
+# =============================
+
+@app.route('/study-projects')
+def study_projects_page():
+    """스터디 프로젝트 목록 페이지"""
+    return render_template('study_projects.html')
+
+@app.route('/study-projects/<int:project_id>')
+def study_project_detail_page(project_id):
+    """스터디 프로젝트 상세 페이지"""
+    return render_template('study_project_detail.html', project_id=project_id)
+
+# API 엔드포인트들
+@app.route('/api/study-projects', methods=['GET'])
+def get_study_projects():
+    """스터디 프로젝트 목록 조회"""
+    if not supabase:
+        return jsonify([]), 500
+    
+    try:
+        response = supabase.table('study_projects').select('*').order('created_at', desc=True).execute()
+        
+        projects = []
+        for project in response.data:
+            participants_response = supabase.table('project_participants').select('user_name').eq('project_id', project['id']).execute()
+            project['participant_count'] = len(participants_response.data)
+            projects.append(project)
+        
+        return jsonify(projects)
+    except Exception as e:
+        print(f"[ERROR] 스터디 프로젝트 목록 조회 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/study-projects', methods=['POST'])
+def create_study_project():
+    """스터디 프로젝트 생성"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        data = request.json
+        
+        project_data = {
+            'title': data.get('title'),
+            'description': data.get('description'),
+            'dataset_name': data.get('dataset_name'),
+            'dataset_url': data.get('dataset_url'),  # ✅ 변경
+            'project_url': data.get('project_url'),  # ✅ 추가
+            'start_date': data.get('start_date'),
+            'end_date': data.get('end_date')
+        }
+        
+        response = supabase.table('study_projects').insert(project_data).execute()
+        return jsonify({'success': True, 'project': response.data[0]})
+    except Exception as e:
+        print(f"[ERROR] 스터디 프로젝트 생성 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/study-projects/<int:project_id>', methods=['PUT'])
+def update_study_project(project_id):
+    """스터디 프로젝트 수정"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        data = request.json
+        
+        update_data = {}
+        
+        if 'title' in data:
+            update_data['title'] = data['title']
+        if 'description' in data:
+            update_data['description'] = data['description']
+        if 'dataset_name' in data:
+            update_data['dataset_name'] = data['dataset_name']
+        if 'dataset_url' in data:  # ✅ 변경
+            update_data['dataset_url'] = data['dataset_url']
+        if 'project_url' in data:  # ✅ 추가
+            update_data['project_url'] = data['project_url']
+        if 'start_date' in data:
+            update_data['start_date'] = data['start_date'] if data['start_date'] else None
+        if 'end_date' in data:
+            update_data['end_date'] = data['end_date'] if data['end_date'] else None
+        
+        print(f"[DEBUG] 프로젝트 수정 데이터: {update_data}")
+        
+        response = supabase.table('study_projects').update(update_data).eq('id', project_id).execute()
+        
+        if not response.data:
+            return jsonify({'error': '프로젝트를 찾을 수 없습니다'}), 404
+        
+        return jsonify({'success': True, 'project': response.data[0]})
+        
+    except Exception as e:
+        print(f"[ERROR] 프로젝트 수정 실패: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/study-projects/<int:project_id>', methods=['DELETE'])
+def delete_study_project(project_id):
+    """스터디 프로젝트 삭제 (선택사항)"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        # CASCADE 설정으로 관련 데이터(참여자, 참관인, 회고록)도 자동 삭제됨
+        response = supabase.table('study_projects').delete().eq('id', project_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"[ERROR] 프로젝트 삭제 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+@app.route('/api/study-projects/<int:project_id>', methods=['GET'])
+def get_study_project_detail(project_id):
+    """스터디 프로젝트 상세 정보 조회"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        # 프로젝트 기본 정보
+        project_response = supabase.table('study_projects').select('*').eq('id', project_id).execute()
+        if not project_response.data:
+            return jsonify({'error': '프로젝트를 찾을 수 없습니다'}), 404
+        
+        project = project_response.data[0]
+        
+        # 참여자 정보 (deleted_at 필터 제거)
+        participants_response = supabase.table('project_participants')\
+            .select('*')\
+            .eq('project_id', project_id)\
+            .execute()
+        project['participants'] = participants_response.data
+        
+        # 참관인 정보 (deleted_at 필터 제거)
+        observers_response = supabase.table('project_observers')\
+            .select('*')\
+            .eq('project_id', project_id)\
+            .execute()
+        project['observers'] = observers_response.data
+        
+        # 회고록 정보 (deleted_at 필터 제거)
+        retro_response = supabase.table('project_retrospectives')\
+            .select('*')\
+            .eq('project_id', project_id)\
+            .order('created_at', desc=False)\
+            .execute()
+        
+        retrospectives = {
+            'GOOD': [],
+            'BAD': [],
+            'IDEAS': [],
+            'ACTION': []
+        }
+        
+        for retro in retro_response.data:
+            category = retro['category']
+            if category in retrospectives:
+                retrospectives[category].append(retro)
+        
+        project['retrospectives'] = retrospectives
+        
+        return jsonify(project)
+    except Exception as e:
+        print(f"[ERROR] 스터디 프로젝트 상세 조회 실패: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/study-projects/<int:project_id>/retrospectives/deleted', methods=['GET'])
+def get_deleted_retrospectives(project_id):
+    """삭제된 회고록 조회"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        # deleted_at이 NULL이 아닌 것만 조회
+        response = supabase.table('project_retrospectives')\
+            .select('*')\
+            .eq('project_id', project_id)\
+            .not_.is_('deleted_at', 'null')\
+            .order('deleted_at', desc=True)\
+            .execute()
+        
+        retrospectives = {
+            'GOOD': [],
+            'BAD': [],
+            'IDEAS': [],
+            'ACTION': []
+        }
+        
+        for retro in response.data:
+            category = retro['category']
+            if category in retrospectives:
+                retrospectives[category].append(retro)
+        
+        return jsonify(retrospectives)
+    except Exception as e:
+        print(f"[ERROR] 삭제된 회고록 조회 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/study-projects/<int:project_id>/retrospectives/<int:retro_id>/restore', methods=['POST'])
+def restore_retrospective(project_id, retro_id):
+    """회고록 복원"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        update_data = {
+            'deleted_at': None
+        }
+        
+        response = supabase.table('project_retrospectives').update(update_data).eq('id', retro_id).execute()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"[ERROR] 회고록 복원 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/study-projects/<int:project_id>/participants', methods=['POST'])
+def add_study_participant(project_id):
+    """참여자 추가"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        data = request.json
+        
+        participant_data = {
+            'project_id': project_id,
+            'user_name': data.get('user_name'),
+            'github_notebook_url': data.get('github_notebook_url')
+        }
+        
+        response = supabase.table('project_participants').insert(participant_data).execute()
+        return jsonify({'success': True, 'participant': response.data[0]})
+    except Exception as e:
+        print(f"[ERROR] 참여자 추가 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# 참여자 삭제
+# 참여자 삭제 - 하드 삭제로 변경
+@app.route('/api/study-projects/<int:project_id>/participants/<int:participant_id>', methods=['DELETE'])
+def delete_study_participant(project_id, participant_id):
+    """참여자 삭제"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        response = supabase.table('project_participants').delete().eq('id', participant_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"[ERROR] 참여자 삭제 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+# 참관인 추가 API
+@app.route('/api/study-projects/<int:project_id>/observers', methods=['POST'])
+def add_observer(project_id):
+    """참관인 추가"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        data = request.json
+        
+        observer_data = {
+            'project_id': project_id,
+            'observer_name': data.get('observer_name')
+        }
+        
+        print(f"[DEBUG] 참관인 추가 데이터: {observer_data}")
+        
+        response = supabase.table('project_observers').insert(observer_data).execute()
+        return jsonify({'success': True, 'observer': response.data[0]})
+    except Exception as e:
+        print(f"[ERROR] 참관인 추가 실패: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+# 참관인 삭제
+@app.route('/api/study-projects/<int:project_id>/observers/<int:observer_id>', methods=['DELETE'])
+def delete_observer(project_id, observer_id):
+    """참관인 삭제"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        response = supabase.table('project_observers').delete().eq('id', observer_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"[ERROR] 참관인 삭제 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/study-projects/<int:project_id>/retrospectives', methods=['POST'])
+def add_study_retrospective(project_id):
+    """회고록 추가"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        data = request.json
+        
+        # 색상 매핑
+        color_map = {
+            'GOOD': '#A8E6CF',
+            'BAD': '#FFB3BA',
+            'IDEAS': '#FFE66D',
+            'ACTION': '#A2D2FF'
+        }
+        
+        retro_data = {
+            'project_id': project_id,
+            'user_name': data.get('user_name'),
+            'category': data.get('category'),
+            'content': data.get('content'),
+            'color': color_map.get(data.get('category'), '#FFE66D')
+        }
+        
+        response = supabase.table('project_retrospectives').insert(retro_data).execute()
+        return jsonify({'success': True, 'retrospective': response.data[0]})
+    except Exception as e:
+        print(f"[ERROR] 회고록 추가 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/study-projects/<int:project_id>/retrospectives/<int:retro_id>', methods=['DELETE'])
+def delete_study_retrospective(project_id, retro_id):
+    """회고록 삭제"""
+    if not supabase:
+        return jsonify({'error': 'Supabase 연결 실패'}), 500
+    
+    try:
+        response = supabase.table('project_retrospectives').delete().eq('id', retro_id).execute()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"[ERROR] 회고록 삭제 실패: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 
 
