@@ -21,7 +21,11 @@
         <div class="leaderboard-container" id="leaderboard">
             <!-- JavaScript로 동적 생성 -->
         </div>
+         <button id="toggle-leaderboard" class="btn-toggle-leaderboard" style="display: none;">
+                <span id="toggle-text">▼ 더보기</span>
+            </button>
     </div>
+
     <div class="quiz-container">
         <div class="quiz-list">
             {% for chapter, quiz_list in quizzes.items() | sort %}
@@ -97,7 +101,35 @@
     padding-bottom: 0.5rem;
     margin-bottom: 1.5rem;
 }
+.leaderboard-item.hidden {
+    display: none;
+}
 
+.btn-toggle-leaderboard {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-toggle-leaderboard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-toggle-leaderboard span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
 .quizzes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -430,29 +462,37 @@ function loadQuizStats() {
         })
         .catch(err => console.error('통계 로드 실패:', err));
 }
+let isLeaderboardExpanded = false;
+
 function loadLeaderboard() {
     fetch('/api/quiz-leaderboard')
         .then(res => res.json())
         .then(data => {
             const leaderboardEl = document.getElementById('leaderboard');
+            const toggleBtn = document.getElementById('toggle-leaderboard');
             
             if (data.length === 0) {
                 leaderboardEl.innerHTML = '<p style="text-align: center; color: #999;">아직 퀴즈를 푼 사람이 없습니다.</p>';
+                toggleBtn.style.display = 'none';
                 return;
             }
             
-            // 최대 완료 횟수 계산 (프로그레스 바 비율용)
+            // 최대 완료 횟수 계산
             const maxCompleted = Math.max(...data.map(item => item.completed));
             
-            leaderboardEl.innerHTML = data.map(item => {
+            // 리더보드 아이템 생성
+            leaderboardEl.innerHTML = data.map((item, index) => {
                 const rankClass = item.rank === 1 ? 'rank-1' : 
                                  item.rank === 2 ? 'rank-2' : 
                                  item.rank === 3 ? 'rank-3' : 'rank-other';
                 
                 const progressPercent = (item.completed / maxCompleted) * 100;
                 
+                // 5등까지는 보이고, 나머지는 숨김
+                const hiddenClass = index >= 5 ? 'hidden' : '';
+                
                 return `
-                    <div class="leaderboard-item">
+                    <div class="leaderboard-item ${hiddenClass}">
                         <div class="rank-badge ${rankClass}">
                             ${item.rank <= 3 ? (item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : '🥉') : item.rank}
                         </div>
@@ -469,19 +509,50 @@ function loadLeaderboard() {
                     </div>
                 `;
             }).join('');
+            
+            // 6명 이상이면 토글 버튼 표시
+            if (data.length > 5) {
+                toggleBtn.style.display = 'block';
+            } else {
+                toggleBtn.style.display = 'none';
+            }
         })
         .catch(err => console.error('[ERROR] 리더보드 로드 실패:', err));
 }
 
-// 페이지 로드 시 리더보드 로드
+function toggleLeaderboard() {
+    const hiddenItems = document.querySelectorAll('.leaderboard-item.hidden');
+    const toggleText = document.getElementById('toggle-text');
+    
+    if (isLeaderboardExpanded) {
+        // 접기
+        hiddenItems.forEach(item => {
+            item.style.display = 'none';
+        });
+        toggleText.innerHTML = '▼ 더보기 (' + hiddenItems.length + '명)';
+        isLeaderboardExpanded = false;
+    } else {
+        // 펼치기
+        hiddenItems.forEach(item => {
+            item.style.display = 'flex';
+        });
+        toggleText.innerHTML = '▲ 접기';
+        isLeaderboardExpanded = true;
+    }
+}
+
+// 페이지 로드 시 이벤트 리스너 추가
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[INIT] 퀴즈 페이지 로드');
     loadUsersList();
     updateUserDisplay();
     loadQuizStats();
-    loadLeaderboard();  // 리더보드 추가
+    loadLeaderboard();
     
     document.getElementById('user-select').addEventListener('change', selectUser);
+    
+    // 토글 버튼 이벤트 리스너
+    document.getElementById('toggle-leaderboard').addEventListener('click', toggleLeaderboard);
 });
 
 // 퀴즈 완료 후 리더보드 새로고침

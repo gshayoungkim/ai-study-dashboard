@@ -182,7 +182,25 @@ QUIZZES = {
             "title": "Ch08-3 - 합성곱 신경망의 시각화",
             "gemini_link": "https://gemini.google.com/share/4d37b2e8bab0"
         }
-    ]
+    ],
+        "ch09": [
+                {
+                    "id": "ch09-1",
+                    "title": "Ch09-1 - 순차 데이터와 순환 신경망",
+                    "gemini_link": "https://gemini.google.com/share/474c7e5d9825"
+                },
+                {
+                    "id": "ch09-2",
+                    "title": "Ch09-2 - 순환 신경망으로 IMDB 리뷰 분류하기",
+                    "gemini_link": "https://gemini.google.com/share/e2c7bf9cde02"
+                },
+                {
+                    "id": "ch09-3",
+                    "title": "Ch09-3 - LSTM과 GRU 셀",
+                    "gemini_link": "https://gemini.google.com/share/44f870767654"
+                }
+            ]
+
 }
 
 # 레포지토리 매핑
