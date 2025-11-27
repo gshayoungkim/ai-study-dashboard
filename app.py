@@ -242,6 +242,8 @@ REPO_NAME_MAPPING = {
     "subin-shin" : "신수빈",
     "seungmin-lee" : "이승민",
     "serim-lee" : "이세림",
+    "dayun-jung" : "정다윤",
+
 
 
 
@@ -287,6 +289,7 @@ PART2_MEMBERS = [
     "subin-han" ,
     "subin-shin" ,
     "seungmin-lee",
+    "dayun-jung",
 
 ]
 
