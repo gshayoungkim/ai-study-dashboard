@@ -241,6 +241,8 @@ REPO_NAME_MAPPING = {
     "subin-han" : "한수빈",
     "subin-shin" : "신수빈",
     "seungmin-lee" : "이승민",
+    "serim-lee" : "이세림",
+
 
 
 }
