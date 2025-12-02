@@ -665,7 +665,7 @@ def fetch_all_submissions():
                 try:
                     contents = repo.get_contents("")
                     files = [f for f in contents if not isinstance(f, dict)]
-                    ipynb_files = [f for f in files if f.name.endswith('.ipynb')]
+                    ipynb_files = [f for f in files if f.name.endswith(('.ipynb', '.py'))]
 
                     for file in ipynb_files:
                         detected_chapter = detect_chapter_from_filename(file.name)
@@ -696,6 +696,9 @@ def fetch_all_submissions():
     
 def detect_chapter_from_filename(filename):
     """파일명에서 챕터 번호를 감지"""
+    
+    filename = filename.split('/')[-1]
+    
     filename_lower = filename.lower()
     filename_clean = ''.join(
         c for c in filename_lower 
