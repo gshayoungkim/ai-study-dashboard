@@ -199,8 +199,24 @@ QUIZZES = {
                     "title": "Ch09-3 - LSTM과 GRU 셀",
                     "gemini_link": "https://gemini.google.com/share/44f870767654"
                 }
-            ]
-
+            ],
+ "ch10": [
+                {
+                    "id": "ch10-1",
+                    "title": "Ch10-1 - 어텐션 메커니즘과 트랜스포머",
+                    "gemini_link": "https://gemini.google.com/share/87ec70ccb267"
+                },
+                {
+                    "id": "ch10-2",
+                    "title": "Ch10-2 - 트랜스포머 활용과 토큰화",
+                    "gemini_link": "https://gemini.google.com/share/8ff024a897b6"
+                },
+                {
+                    "id": "ch10-3",
+                    "title": "Ch10-3 - 대규모 언어 모델과 텍스트 생성",
+                    "gemini_link": "https://gemini.google.com/share/e5db3cc8eb3e"
+                }
+            ],
 }
 
 # 레포지토리 매핑
@@ -216,7 +232,6 @@ REPO_NAME_MAPPING = {
     "soyeon-park": "박소연",
     "zeho-oh": "오제호",
     "yeji-kim": "김예지",
-    "jihoon-jung": "정지훈",
     "sieun-lee": "이시은",
     "suhyeon-min": "민수현",
     "sungkyeong-bae": "배성경",
@@ -260,7 +275,6 @@ PART1_MEMBERS = [
     "seongyeong-kim",
     "soyeon-park",
     "zeho-oh",
-    "jihoon-jung",
     "sieun-lee",
     "suhyeon-min",
     "sungkyeong-bae",
